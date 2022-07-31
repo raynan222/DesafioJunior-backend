@@ -1,23 +1,31 @@
-from application import Usuario
+import re
 
-
+from flask import request, jsonify
+from sqlalchemy import or_
+from sqlalchemy import exc
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from application.app import app
+from application.database import db
+from source.controller import paginate, Messages
+from source.model.usuarioTable import Usuario
 
 #C
+@app.route("/usuario/add", methods=["POST"])
+@jwt_required
 def usuarioCreation():
     dados = request.get_json()
 
-
     #checa se existe cadastro do pis ou cpf
-    cpf = fieldsFormatter.CpfFormatter().clean(dados["cpf"])
-    pis = fieldsFormatter.PisFormatter().clean(dados["pis"])
+    cpf = re.sub('[^\\d+$]', '', dados["cpf"])
+    pis = re.sub('[^\\d+$]', '', dados["pis"])
     usuario = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
     if usuario is not None:
         return jsonify({"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True})
 
     usuario = Usuario(
-        nome = dados.get("nome"),
-        pis = fieldsFormatter.PisFormatter().clean(dados.get("pis")),
-        cpf = fieldsFormatter.CpfFormatter().clean(dados.get("cpf")),
+        nome = dados["nome"],
+        pis = re.sub('[^\\d+$]', '', dados["pis"]),
+        cpf = re.sub('[^\\d+$]', '', dados["cpf"]),
     )
 
     db.session.add(usuario)
@@ -29,6 +37,8 @@ def usuarioCreation():
         return jsonify({"message": Messages.REGISTER_CREATE_INTEGRITY_ERROR, "error": True})
 
 #R(VIEW,LIST)
+@app.route("/usuario/view/<int:query_id>", methods=["GET"])
+@jwt_required
 def usuarioView(query_id: int):
     usuario = Usuario.query.get(get_jwt_identity())
 
@@ -47,6 +57,8 @@ def usuarioView(query_id: int):
 
     return jsonify(user)
 
+@app.route("/perfil/list", methods=["GET"])
+@jwt_required
 def usuarioList():
     page = request.args.get("page", 1, type=int)
     rows_per_page = request.args.get("rows_per_page", app.config["ROWS_PER_PAGE"], type=int)
@@ -67,6 +79,8 @@ def usuarioList():
     return jsonify(dados)
 
 #U
+@app.route("/usuario/edit/<int:query_id>", methods=["PUT"])
+@jwt_required
 def usuarioUpdate(query_id: int):
     dado = request.get_json()
 
@@ -91,9 +105,9 @@ def usuarioUpdate(query_id: int):
         return jsonify({"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True})
 
 
-    usuario.nome = data.get("nome")
-    usuario.cpf = data.get("cpf")
-    usuario.pis = data.get("pis")
+    usuario.nome = dado.get("nome")
+    usuario.cpf = dado.get("cpf")
+    usuario.pis = dado.get("pis")
     try:
         db.session.commit()
         return jsonify({"message": Messages.REGISTER_SUCCESS_UPDATED.format("usuario"),"error": False,})
@@ -102,6 +116,8 @@ def usuarioUpdate(query_id: int):
         return jsonify({"message": Messages.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True})
 
 #D(DELETION)
+@app.route("/usuario/delete/<int:query_id>", methods=["DELETE"])
+@jwt_required
 def usuarioDelete(query_id: int):
     usuario = Usuario.query.get(query_id)
 

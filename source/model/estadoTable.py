@@ -8,4 +8,4 @@ class Estado(db.Model):
     sigla = db.Column(db.String(2), nullable=False, unique=True)
     pais_id = db.Column(db.Integer, db.ForeignKey('pais.id'), nullable=False)
 
-    municipios = db.relationship('Municipio', backref='uf_id', lazy=True)
+    municipios = db.relationship('Municipio', backref='estado', lazy=True)

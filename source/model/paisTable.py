@@ -6,4 +6,4 @@ class Pais(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(255), nullable=False)
 
-    estados = db.relationship('Estado', backref='pais_id', lazy=True)
+    estados = db.relationship('Estado', backref='pais', lazy=True)

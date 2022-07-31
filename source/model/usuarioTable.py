@@ -8,4 +8,5 @@ class Usuario(db.Model):
     pis = db.Column(db.String(50), unique=True, nullable=False)
     cpf = db.Column(db.String(50), unique=True, nullable=False)
 
-    endereco_id = db.Column(db.BigInteger, db.ForeignKey("endereco.id"), nullable=False)
+    #desativar nullable
+    endereco_id = db.Column(db.BigInteger, db.ForeignKey("endereco.id"), nullable=True)
