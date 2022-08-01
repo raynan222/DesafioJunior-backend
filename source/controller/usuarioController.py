@@ -6,13 +6,55 @@ from sqlalchemy import exc
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from application.app import app
 from application.database import db
-from source.controller import paginate, Messages
-from source.model.usuarioTable import Usuario
+from source.controller import paginate, Messages, field_validator
+from source.model import Login
+from source.model.usuarioTable import Usuario, UsuarioModel
+
 
 #C
 @app.route("/usuario/add", methods=["POST"])
 @jwt_required
+@field_validator(UsuarioModel)
 def usuarioCreation():
+    """Adiciona registro
+    ---
+    put:
+        security:
+            - jwt: []
+        summary: Adiciona um registro
+        parameters:
+          - name: nome
+            in: query
+            description: Nome para filtro
+            required: false
+            schema:
+                type: string
+        requestBody:
+            description: Dados necessários para a criação do registro
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/UsuarioModel'
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
     dados = request.get_json()
 
     #checa se existe cadastro do pis ou cpf
@@ -36,61 +78,168 @@ def usuarioCreation():
         db.session.rollback()
         return jsonify({"message": Messages.REGISTER_CREATE_INTEGRITY_ERROR, "error": True})
 
-#R(VIEW,LIST)
+#R(VIEW, LIST)
 @app.route("/usuario/view/<int:query_id>", methods=["GET"])
 @jwt_required
 def usuarioView(query_id: int):
-    usuario = Usuario.query.get(get_jwt_identity())
+    """Busca registro por ID
+    ---
+    get:
+      security:
+        - jwt: []
+      summary: Busca o registro do banco se ele existir
+      parameters:
+        - in: path
+          name: query_id
+          schema:
+            type: integer
+          required: true
+          description: Identificação única do registro
+      responses:
+        200:
+            description: "Sucesso"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/UsuarioModel"
+        204:
+            description: "Ocorreu um erro"
+            content:
+                application/json:
+                  schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
+    login = Login.query.get(get_jwt_identity())
 
-    if usuario is None:
+    if login is None:
         return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
-    if usuario.login.acesso.nome != "administracao":
-        query_id = usuario.id
+    if login.acesso.nome != "administração":
+        query_id = login.usuario_id
 
-    dados = Usuario.query.get(query_id)
+    usuario = Usuario.query.get(query_id)
 
-    if not dados:
+    if not usuario:
         return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True})
 
-    user = dados.to_dict()
-    user["error"] = False
+    dict = {"error": False}
+    dict["nome"] = usuario.nome
+    dict["pis"] = usuario.pis
+    dict["cpf"] = usuario.cpf
+    dict["id"] = usuario.id
 
-    return jsonify(user)
+    return jsonify(dict)
 
-@app.route("/perfil/list", methods=["GET"])
+@app.route("/usuario/list", methods=["GET"])
 @jwt_required
 def usuarioList():
+    """Busca lista de registros
+    ---
+    get:
+        security:
+            - jwt: []
+        summary: Busca lista de registro existentes no banco
+        parameters:
+            - name: nome
+              in: query
+              description: Nome de usuario para filtro
+              required: false
+              schema:
+                type: string
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                count:
+                                    type: integer
+                                items:
+                                    type: array
+                                    items:
+                                        $ref: "#/components/schemas/UsuarioModel"
+                            required:
+                                - count
+                                - items
+    """
     page = request.args.get("page", 1, type=int)
     rows_per_page = request.args.get("rows_per_page", app.config["ROWS_PER_PAGE"], type=int)
-    email_filter = request.args.get("email", None)
+    nome_filter = request.args.get("nome", None)
 
     query = Usuario.query
 
-    if email_filter is not None:
-        #vai quebrar
-        query = query.filter(Usuario.login.email.ilike("%%{}%%".format(email_filter.lower())))
+    if nome_filter is not None:
+        query = query.filter(Usuario.nome.ilike("%%{}%%".format(nome_filter.lower())))
 
     usuarios, dados = paginate(query, page, rows_per_page)
 
     for usuario in usuarios:
-        dado = usuario.to_dict()
-        dados["itens"].append(dado)
+        dict = {}
+        dict["nome"] = usuario.nome
+        dict["cpf"] = usuario.cpf
+        dict["pis"] = usuario.pis
+        dict["id"] = usuario.id
+
+        dados["itens"].append(dict)
 
     return jsonify(dados)
 
 #U
-@app.route("/usuario/edit/<int:query_id>", methods=["PUT"])
+@app.route("/usuario/update/<int:query_id>", methods=["PUT"])
 @jwt_required
+@field_validator(UsuarioModel)
 def usuarioUpdate(query_id: int):
+    """Adiciona registro
+    ---
+    put:
+        security:
+            - jwt: []
+        summary: Edita um registro
+        parameters:
+            - in: path
+              name: query_id
+              schema:
+                type: integer
+              required: true
+              description: Identificação única do registro
+        requestBody:
+            description: Dados necessários para a edição do registro
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/UsuarioModel'
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
     dado = request.get_json()
 
-    usuario = Usuario.query.get(get_jwt_identity())
-
-    #Usuario edita a si mesmo
-    if usuario is None:
+    login = Login.query.get(get_jwt_identity())
+    #Usuario edita a si mesmo caso nao seja adminitador
+    if login is None:
         return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
-    if usuario.login.acesso.nome != "administracao":
-        query_id = usuario.id
+    if login.acesso.nome != "administração":
+        query_id = login.usuario_id
 
     #recebe os dados do usuario a ser editado
     edit = Usuario.query.get(query_id)
@@ -104,10 +253,9 @@ def usuarioUpdate(query_id: int):
     if existente is not None:
         return jsonify({"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True})
 
-
-    usuario.nome = dado.get("nome")
-    usuario.cpf = dado.get("cpf")
-    usuario.pis = dado.get("pis")
+    for campo in ["nome", "cpf", "pis"]:
+        if dado.get(campo):
+            setattr(edit, campo, dado.get(campo))
     try:
         db.session.commit()
         return jsonify({"message": Messages.REGISTER_SUCCESS_UPDATED.format("usuario"),"error": False,})
@@ -119,6 +267,39 @@ def usuarioUpdate(query_id: int):
 @app.route("/usuario/delete/<int:query_id>", methods=["DELETE"])
 @jwt_required
 def usuarioDelete(query_id: int):
+    """Remove registro por ID
+    ---
+    delete:
+      security:
+        - jwt: []
+      summary: Remove o registro do banco se ele existir
+      parameters:
+        - in: path
+          name: query_id
+          schema:
+            type: integer
+          required: true
+          description: Identificação única do registro
+      responses:
+        200:
+            description: "Sucesso"
+            content:
+                application/json:
+                    schema:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+        400:
+            description: "Ocorreu um erro"
+            content:
+                application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
     usuario = Usuario.query.get(query_id)
 
     if not usuario:
@@ -126,9 +307,9 @@ def usuarioDelete(query_id: int):
             {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
-    usuario_atual = Usuario.query.get(get_jwt_identity())
+    login = Login.query.get(get_jwt_identity())
 
-    if usuario_atual.login.acesso.nome != "administracao" and usuario_atual.id != usuario.id:
+    if login.acesso.nome != "administração" and login.usuario_id != usuario.id:
         return jsonify(
             {"message": Messages.USER_INVALID_DELETE, "error": True})
 

@@ -4,19 +4,84 @@ from flask import request, jsonify
 from werkzeug.security import generate_password_hash
 from application.database import db
 from application.app import app
-from source.controller import paginate, Messages
-from source.model.enderecoTable import Endereco
-from source.model.loginTable import Login
+from source.controller import paginate, Messages, field_validator
+from source.model.enderecoTable import Endereco, EnderecoModel
+from source.model.loginTable import Login, LoginModel
 from sqlalchemy import exc, or_
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from source.model.usuarioTable import Usuario
+from source.model.usuarioTable import Usuario, UsuarioModel
+
 
 #C
-
-
-
-@app.route("/login/cadastro", methods=["POST"])
+@app.route("/login/cadastro", methods=["PUT"])
+@field_validator(LoginModel)
+@field_validator(UsuarioModel)
+@field_validator(EnderecoModel)
 def cadastroLogin():
+    """Adiciona registro
+    ---
+    put:
+        summary: Adiciona um registro
+        requestBody:
+            description: Dados necessários para a criação do registro
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    senha:
+                      type: string
+                    nome:
+                      type: string
+                    pis:
+                      type: string
+                    cpf:
+                      type: string
+                    cep:
+                      type: string
+                    rua:
+                      type: string
+                    numero:
+                      type: string
+                    bairro:
+                      type: string
+                    complemento:
+                      type: string
+                    municipio_id:
+                      type: integer
+                  required:
+                    - email
+                    - senha
+                    - nome
+                    - pis
+                    - cpf
+                    - cep
+                    - rua
+                    - numero
+                    - bairro
+                    - municipio_id
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
     dado = request.get_json()
 
     #checa a existencia de um login ja cadastrado com os dados informados
@@ -26,8 +91,8 @@ def cadastroLogin():
         )
 
     #Checa existencia de um usuario ja cadastrado com os dados informados
-    cpf = re.sub('[^\\d+$]', '', dado["cpf"])
-    pis = re.sub('[^\\d+$]', '', dado["pis"])
+    cpf = re.sub('[^\\d+$]', '', dado.get("cpf"))
+    pis = re.sub('[^\\d+$]', '', dado.get("pis"))
     usuario = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
     if usuario is not None:
         return jsonify(
@@ -37,24 +102,22 @@ def cadastroLogin():
     senha_hashed = generate_password_hash(dado.get('senha'), method="sha256")
     email = dado.get("email").lower()
 
-    #Cadastra o endereço
-    endereco = Endereco(
-        cep=re.sub('[^\\d+$]', '', dado.get("cep")),
-        rua=dado.get("rua"),
-        numero=dado.get("numero"),
-        bairro=dado.get("bairro"),
-        complemento=dado.get("complemento"),
-        municipio_id=dado.get("municipio_id"),
-    )
+    # Cadastra o endereço
+    endereco = Endereco()
+    for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
+        if dado.get(campo):
+            print(campo)
+            setattr(endereco, campo, dado.get(campo))
     db.session.add(endereco)
 
-    #Cadastra o usuario
-    usuario = Usuario(
-        nome=dado.get("nome"),
-        pis=re.sub('[^\\d+$]', '', dado.get("pis")),
-        cpf=re.sub('[^\\d+$]', '', dado.get("cpf")),
-        endereco=endereco.id
-    )
+    # Cadastra o usuario
+    usuario = Usuario()
+    for campo in ["nome", "pis", "cpf"]:
+        if dado.get(campo):
+            print(campo)
+            setattr(usuario, campo, dado.get(campo))
+    # Adiciona o id do endereço
+    usuario.endereco_id = endereco.id
     db.session.add(usuario)
 
     try:
@@ -64,7 +127,7 @@ def cadastroLogin():
             email=email,
             senha=senha_hashed,
             usuario_id=usuario.id,
-            cargo_id=2,
+            acesso_id=2,
         )
 
         db.session.add(login)
@@ -82,27 +145,69 @@ def cadastroLogin():
             {"message": Messages.REGISTER_CREATE_INTEGRITY_ERROR, "error": True}
         )
 
-@app.route("/login/add", methods=["POST"])
+@app.route("/login/add", methods=["PUT"])
 @jwt_required
+@field_validator(LoginModel)
 def loginCreation():
-    dados = request.get_json()
+    """Adiciona registro
+    ---
+    put:
+        security:
+            - jwt: []
+        summary: Adiciona um registro
+        requestBody:
+            description: Dados necessários para a criação do registro
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/LoginModel'
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
+    dado = request.get_json()
+
+    login = Login.query.get(get_jwt_identity())
+    #Caso o login nao seja adminitrador ele nao deve conseguir criar um login
+    if login is None:
+        return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
+    if login.acesso.nome != "administração":
+        print(login.acesso.nome)
+        return jsonify({"message": Messages.AUTH_USER_DENIED, "error": True})
 
     #Checa a existencia de email ja cadastrado
-    if Login.query.filter_by(email=dados.get("email").lower()).first():
+    if Login.query.filter_by(email=dado.get("email").lower()).first():
         return jsonify(
             {"message": Messages.ALREADY_EXISTS.format("email"), "error": True}
         )
 
-    senha_hashed = generate_password_hash(dados.get('senha'), method="sha256")
-    email = dados.get("email").lower()
+    senha_hashed = generate_password_hash(dado.get('senha'), method="sha256")
+    email = dado.get("email").lower()
     login = Login(email = email,
                   senha = senha_hashed,
-                  acesso_id = 1)
+                  usuario_id = dado.get("usuario_id"),
+                  acesso_id = dado.get("acesso_id"))
 
     db.session.add(login)
 
     try:
-        db.commit()
+        db.session.commit()
     except exc.IntegrityError:
         db.session.rollback()
         return jsonify({"message": Messages.REGISTER_CREATE_INTEGRITY_ERROR, "error": True})
@@ -111,27 +216,93 @@ def loginCreation():
 @app.route("/login/view/<int:query_id>", methods=["GET"])
 @jwt_required
 def loginView(query_id: int):
+    """Busca registro por ID
+    ---
+    get:
+      security:
+        - jwt: []
+      summary: Busca o registro do banco se ele existir
+      parameters:
+        - in: path
+          name: query_id
+          schema:
+            type: integer
+          required: true
+          description: Identificação única do registro
+      responses:
+        200:
+            description: "Sucesso"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/LoginModel"
+        204:
+            description: "Ocorreu um erro"
+            content:
+                application/json:
+                  schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
     login = Login.query.get(get_jwt_identity())
 
     #Caso o login nao seja adminitrado ele ve a si mesmo
     if login is None:
         return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
-    if login.acesso.nome != "administracao":
+    if login.acesso.nome != "administração":
         query_id = login.id
 
-    dados = Login.query.get(query_id)
+    #Busca o login a ser visto no banco
+    login = Login.query.get(query_id)
 
-    if not dados:
+    if not login:
         return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True})
 
-    dado = dados.to_dict()
-    dado["error"] = False
+    dict = {"error": False}
+    dict["email"] = login.email
+    dict["senha"] = login.senha
+    dict["usuario_id"] = login.usuario_id
+    dict["acesso_id"] = login.acesso_id
+    dict["id"] = login.id
 
-    return jsonify(dado)
+    return jsonify(dict)
 
 @app.route("/login/list", methods=["GET"])
 @jwt_required
 def loginList():
+    """Busca lista de registros
+    ---
+    get:
+        security:
+            - jwt: []
+        summary: Busca lista de registro existentes no banco
+        parameters:
+            - name: email
+              in: query
+              description: email para filtro
+              required: false
+              schema:
+                type: string
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                count:
+                                    type: integer
+                                items:
+                                    type: array
+                                    items:
+                                        $ref: "#/components/schemas/LoginModel"
+                            required:
+                                - count
+                                - items
+    """
     page = request.args.get("page", 1, type=int)
     rows_per_page = request.args.get("rows_per_page", app.config["ROWS_PER_PAGE"], type=int)
     email_filter = request.args.get("email", None)
@@ -144,15 +315,60 @@ def loginList():
     logins, dados = paginate(query, page, rows_per_page)
 
     for login in logins:
-        dado = login.to_dict()
-        dados["itens"].append(dado)
+        dict = {}
+        dict["email"] = login.email
+        dict["senha"] = login.senha
+        dict["usuario_id"] = login.usuario_id
+        dict["acesso_id"] = login.acesso_id
+        dict["id"] = login.id
 
+        dados["itens"].append(dict)
     return jsonify(dados)
 
 #U
 @app.route("/login/update/<int:query_id>", methods=["PUT"])
 @jwt_required
+@field_validator(LoginModel)
 def loginUpdate(query_id: int):
+    """Adiciona registro
+    ---
+    put:
+        security:
+            - jwt: []
+        summary: Edita um registro
+        parameters:
+            - in: path
+              name: query_id
+              schema:
+                type: integer
+              required: true
+              description: Identificação única do registro
+        requestBody:
+            description: Dados necessários para a edição do registro
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/LoginModel'
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
     dado = request.get_json()
 
     login = Login.query.get(get_jwt_identity())
@@ -160,7 +376,7 @@ def loginUpdate(query_id: int):
     #Login edita a si mesmo
     if login is None:
         return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
-    if login.acesso.nome != "administracao":
+    if login.acesso.nome != "administração":
         query_id = login.id
 
     #recebe os dados do login a ser editado
@@ -175,7 +391,10 @@ def loginUpdate(query_id: int):
             senha_hashed = generate_password_hash(dado.get('senha'), method="sha256")
             login.senha = senha_hashed
 
-    login.email = dado.get("email").lower()
+    for campo in ["email", "usuario_id", "acesso_id"]:
+        if dado.get(campo):
+            print(campo)
+            setattr(edit, campo, dado.get(campo))
 
     try:
         db.session.commit()
@@ -188,6 +407,39 @@ def loginUpdate(query_id: int):
 @app.route("/login/delete/<int:query_id>", methods=["DELETE"])
 @jwt_required
 def loginDelete(query_id: int):
+    """Remove registro por ID
+    ---
+    delete:
+      security:
+        - jwt: []
+      summary: Remove o registro do banco se ele existir
+      parameters:
+        - in: path
+          name: query_id
+          schema:
+            type: integer
+          required: true
+          description: Identificação única do registro
+      responses:
+        200:
+            description: "Sucesso"
+            content:
+                application/json:
+                    schema:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+        400:
+            description: "Ocorreu um erro"
+            content:
+                application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
     login = Login.query.get(query_id)
 
     if not login:
@@ -197,7 +449,7 @@ def loginDelete(query_id: int):
 
     login_atual = Login.query.get(get_jwt_identity())
 
-    if login_atual.acesso.nome != "administracao" and login_atual.id != login.id:
+    if login_atual.acesso.nome != "administração" and login_atual.id != login.id:
         return jsonify(
             {"message": Messages.USER_INVALID_DELETE, "error": True})
 

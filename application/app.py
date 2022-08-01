@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
@@ -5,8 +7,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 jwt = JWTManager(app)
 app.config["JWT_SECRET_KEY"] = "abc"
+app.config["ROWS_PER_PAGE"] = 10
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
 
-CORS(app)
+CORS(app) # Se o deploy for em vpc ou de msm origem, remover cors
 
 @app.route("/")
 def hello_world():
@@ -17,14 +21,9 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 import Messages
-from source.model.acessoTable import Acesso
-from source.model.controllerTable import Controller
-from source.model.enderecoTable import Endereco
-from source.model.estadoTable import Estado
-from source.model.loginTable import Login
-from source.model.municipioTable import Municipio
-from source.model.paisTable import Pais
-from source.model.regraTable import Regra
-from source.model.usuarioTable import Usuario
-
+import source.model
+from source.controller import acessoController
 from source.controller import authenticationController
+from source.controller import enderecoController
+from source.controller import loginController
+from source.controller import usuarioController
