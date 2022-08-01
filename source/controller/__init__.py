@@ -7,7 +7,7 @@ from error import error_type
 import Messages
 
 # item pagination
-def paginate(query: BaseQuery, page: int=1, rows_per_page: int=1):
+def paginate(query: BaseQuery, page: int = 1, rows_per_page: int = 1):
 
     pagination = query.paginate(page=page, per_page=rows_per_page, error_out=False)
 
@@ -28,6 +28,7 @@ def paginate(query: BaseQuery, page: int=1, rows_per_page: int=1):
 
     return data, output
 
+
 def field_validator(validator: BaseModel):
     def wrapper(f):
         @wraps(f)
@@ -38,17 +39,15 @@ def field_validator(validator: BaseModel):
                 validator.parse_raw(data)
             except ValidationError as e:
                 for error in e.errors():
-                    msg = error_type.get(error['type'])
-                    ctx = error.get('ctx')
+                    msg = error_type.get(error["type"])
+                    ctx = error.get("ctx")
 
                     if msg:
                         if ctx:
                             msg = msg.format(**ctx)
-                        error['msg'] = msg
+                        error["msg"] = msg
 
-                validation_errors = {
-                    "body_params": e.errors()
-                }
+                validation_errors = {"body_params": e.errors()}
 
                 return (
                     jsonify(
@@ -61,5 +60,7 @@ def field_validator(validator: BaseModel):
                 )
 
             return f(*args, **kwargs)
+
         return wrapped
+
     return wrapper

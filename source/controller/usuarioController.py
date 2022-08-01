@@ -11,7 +11,7 @@ from source.model import Login
 from source.model.usuarioTable import Usuario, UsuarioModel
 
 
-#C
+# C
 @app.route("/usuario/add", methods=["POST"])
 @jwt_required
 @field_validator(UsuarioModel)
@@ -57,17 +57,19 @@ def usuarioCreation():
     """
     dados = request.get_json()
 
-    #checa se existe cadastro do pis ou cpf
-    cpf = re.sub('[^\\d+$]', '', dados["cpf"])
-    pis = re.sub('[^\\d+$]', '', dados["pis"])
+    # checa se existe cadastro do pis ou cpf
+    cpf = re.sub("[^\\d+$]", "", dados["cpf"])
+    pis = re.sub("[^\\d+$]", "", dados["pis"])
     usuario = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
     if usuario is not None:
-        return jsonify({"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True})
+        return jsonify(
+            {"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
+        )
 
     usuario = Usuario(
-        nome = dados["nome"],
-        pis = re.sub('[^\\d+$]', '', dados["pis"]),
-        cpf = re.sub('[^\\d+$]', '', dados["cpf"]),
+        nome=dados["nome"],
+        pis=re.sub("[^\\d+$]", "", dados["pis"]),
+        cpf=re.sub("[^\\d+$]", "", dados["cpf"]),
     )
 
     db.session.add(usuario)
@@ -76,9 +78,12 @@ def usuarioCreation():
         db.session.commit()
     except exc.IntegrityError:
         db.session.rollback()
-        return jsonify({"message": Messages.REGISTER_CREATE_INTEGRITY_ERROR, "error": True})
+        return jsonify(
+            {"message": Messages.REGISTER_CREATE_INTEGRITY_ERROR, "error": True}
+        )
 
-#R(VIEW, LIST)
+
+# R(VIEW, LIST)
 @app.route("/usuario/view/<int:query_id>", methods=["GET"])
 @jwt_required
 def usuarioView(query_id: int):
@@ -115,14 +120,21 @@ def usuarioView(query_id: int):
     login = Login.query.get(get_jwt_identity())
 
     if login is None:
-        return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
+        return jsonify(
+            {
+                "message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()),
+                "error": True,
+            }
+        )
     if login.acesso.nome != "administração":
         query_id = login.usuario_id
 
     usuario = Usuario.query.get(query_id)
 
     if not usuario:
-        return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True})
+        return jsonify(
+            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+        )
 
     dict = {"error": False}
     dict["nome"] = usuario.nome
@@ -131,6 +143,7 @@ def usuarioView(query_id: int):
     dict["id"] = usuario.id
 
     return jsonify(dict)
+
 
 @app.route("/usuario/list", methods=["GET"])
 @jwt_required
@@ -167,7 +180,9 @@ def usuarioList():
                                 - items
     """
     page = request.args.get("page", 1, type=int)
-    rows_per_page = request.args.get("rows_per_page", app.config["ROWS_PER_PAGE"], type=int)
+    rows_per_page = request.args.get(
+        "rows_per_page", app.config["ROWS_PER_PAGE"], type=int
+    )
     nome_filter = request.args.get("nome", None)
 
     query = Usuario.query
@@ -188,7 +203,8 @@ def usuarioList():
 
     return jsonify(dados)
 
-#U
+
+# U
 @app.route("/usuario/update/<int:query_id>", methods=["PUT"])
 @jwt_required
 @field_validator(UsuarioModel)
@@ -235,35 +251,54 @@ def usuarioUpdate(query_id: int):
     dado = request.get_json()
 
     login = Login.query.get(get_jwt_identity())
-    #Usuario edita a si mesmo caso nao seja adminitador
+    # Usuario edita a si mesmo caso nao seja adminitador
     if login is None:
-        return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
+        return jsonify(
+            {
+                "message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()),
+                "error": True,
+            }
+        )
     if login.acesso.nome != "administração":
         query_id = login.usuario_id
 
-    #recebe os dados do usuario a ser editado
+    # recebe os dados do usuario a ser editado
     edit = Usuario.query.get(query_id)
     if not edit:
-        return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True})
+        return jsonify(
+            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+        )
 
     # checa validade dos dados
     cpf = dado.get("cpf")
     pis = dado.get("pis")
-    existente = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
+    existente = Usuario.query.filter(
+        or_(Usuario.cpf == cpf, Usuario.pis == pis)
+    ).first()
     if existente is not None:
-        return jsonify({"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True})
+        return jsonify(
+            {"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
+        )
 
     for campo in ["nome", "cpf", "pis"]:
         if dado.get(campo):
             setattr(edit, campo, dado.get(campo))
     try:
         db.session.commit()
-        return jsonify({"message": Messages.REGISTER_SUCCESS_UPDATED.format("usuario"),"error": False,})
+        return jsonify(
+            {
+                "message": Messages.REGISTER_SUCCESS_UPDATED.format("usuario"),
+                "error": False,
+            }
+        )
     except exc.IntegrityError:
         db.session.rollback()
-        return jsonify({"message": Messages.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True})
+        return jsonify(
+            {"message": Messages.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
+        )
 
-#D(DELETION)
+
+# D(DELETION)
 @app.route("/usuario/delete/<int:query_id>", methods=["DELETE"])
 @jwt_required
 def usuarioDelete(query_id: int):
@@ -310,8 +345,7 @@ def usuarioDelete(query_id: int):
     login = Login.query.get(get_jwt_identity())
 
     if login.acesso.nome != "administração" and login.usuario_id != usuario.id:
-        return jsonify(
-            {"message": Messages.USER_INVALID_DELETE, "error": True})
+        return jsonify({"message": Messages.USER_INVALID_DELETE, "error": True})
 
     db.session.delete(usuario)
 

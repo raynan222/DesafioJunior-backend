@@ -69,7 +69,6 @@ with app.app_context():
         spec.components.schema(model["title"], model)
         spec.tag(dict(name="Rotas", description="Rotas"))
 
-
     paths = [
         acessoView,
         acessoList,

@@ -51,6 +51,7 @@ def acessoView(query_id: int):
 
     return jsonify(dict)
 
+
 @app.route("/acesso/all", methods=["GET"])
 @jwt_required
 def acessoList():
@@ -79,10 +80,11 @@ def acessoList():
                                 - items
     """
     page = request.args.get("page", 1, type=int)
-    rows_per_page = request.args.get("rows_per_page", app.config["ROWS_PER_PAGE"], type=int)
+    rows_per_page = request.args.get(
+        "rows_per_page", app.config["ROWS_PER_PAGE"], type=int
+    )
 
     query = Acesso.query
-
 
     acessos, dados = paginate(query, page, rows_per_page)
 

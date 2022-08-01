@@ -60,6 +60,7 @@ def enderecoView(query_id: int):
 
     return jsonify(dado)
 
+
 @app.route("/endereco/list", methods=["GET"])
 @jwt_required
 def enderecoList():
@@ -88,7 +89,9 @@ def enderecoList():
                                 - items
     """
     page = request.args.get("page", 1, type=int)
-    rows_per_page = request.args.get("rows_per_page", app.config["ROWS_PER_PAGE"], type=int)
+    rows_per_page = request.args.get(
+        "rows_per_page", app.config["ROWS_PER_PAGE"], type=int
+    )
     rua = request.args.get("rua", None)
     query = Endereco.query
 
@@ -111,7 +114,8 @@ def enderecoList():
 
     return jsonify(dados)
 
-#U
+
+# U
 @app.route("/endereco/update/<int:query_id>", methods=["PUT"])
 @jwt_required
 @field_validator(EnderecoModel)
@@ -159,16 +163,23 @@ def enderecoUpdate(query_id: int):
 
     login = Login.query.get(get_jwt_identity())
 
-    #Login edita a si mesmo
+    # Login edita a si mesmo
     if login is None:
-        return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()), "error": True})
+        return jsonify(
+            {
+                "message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()),
+                "error": True,
+            }
+        )
     if login.acesso.nome != "administração":
         query_id = login.usuario.endereco_id
 
-    #recebe os dados do login a ser editado
+    # recebe os dados do login a ser editado
     edit = Endereco.query.get(query_id)
     if not edit:
-        return jsonify({"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True})
+        return jsonify(
+            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+        )
 
     for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
         if dado.get(campo):
@@ -177,7 +188,14 @@ def enderecoUpdate(query_id: int):
 
     try:
         db.session.commit()
-        return jsonify({"message": Messages.REGISTER_SUCCESS_UPDATED.format("login"), "error": False,})
+        return jsonify(
+            {
+                "message": Messages.REGISTER_SUCCESS_UPDATED.format("login"),
+                "error": False,
+            }
+        )
     except exc.IntegrityError:
         db.session.rollback()
-        return jsonify({"message": Messages.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True})
+        return jsonify(
+            {"message": Messages.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
+        )

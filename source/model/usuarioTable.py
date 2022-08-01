@@ -1,7 +1,8 @@
 from typing import Optional
-
+from validate_docbr import CPF, PIS
+import Messages
 from application.database import db
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, validator
 
 
 class Usuario(db.Model):
@@ -11,8 +12,25 @@ class Usuario(db.Model):
     nome = db.Column(db.String(255), nullable=False)
     pis = db.Column(db.String(50), unique=True, nullable=False)
     cpf = db.Column(db.String(50), unique=True, nullable=False)
-    #desativar nullable
-    endereco_id = db.Column(db.BigInteger, db.ForeignKey("endereco.id"), nullable=True)
+    endereco_id = db.Column(db.BigInteger, db.ForeignKey("endereco.id"), nullable=False)
+
+    @validator("nome", pre=True)
+    def is_str(cls, v):
+        if not isinstance(v, str):
+            raise ValueError(Messages.INVALID_TYPE.format(type(v)))
+        return v
+
+    @validator("pis", pre=True)
+    def is_int(cls, v):
+        if not PIS().validate(v):
+            raise ValueError(Messages.INVALID_PIS.format(type(v)))
+        return v
+
+    @validator("cpf", pre=True)
+    def is_int(cls, v):
+        if not CPF().validate(v):
+            raise ValueError(Messages.INVALID_CPF.format(type(v)))
+        return v
 
 
 class UsuarioModel(BaseModel):

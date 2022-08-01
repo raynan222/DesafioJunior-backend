@@ -15,7 +15,9 @@ INVALID_TYPE = "O tipo {} é invalido para esse campo"
 AUTH_USER_NOT_FOUND = "O usuário informado não está registrado."
 AUTH_USER_PASS_ERROR = "A senha informada não corresponde com a do usuário."
 AUTH_USER_DENIED = "O usuário não possui permissão para acessar a URL solicitada."
-
+INVALID_CPF = "O CPF({}) é invalido."
+INVALID_PIS = "O PIS({}) é invalido."
+INVALID_EMAIL = "O email({}) é invalido."
 USER_INVALID_DELETE = "Não é permitido deletar esse usuário."
 
 ALREADY_EXISTS = "O {} informado já está cadastrado."
