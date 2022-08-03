@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required
 from application.app import app
-from source.controller import paginate, Messages
+from source.controller import paginate, Globals
 from source.model.acessoTable import Acesso
 
 
@@ -42,7 +42,7 @@ def acessoView(query_id: int):
 
     if not acesso:
         return jsonify(
-            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
     dict = {"error": False}

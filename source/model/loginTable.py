@@ -1,8 +1,8 @@
 import re
 from typing import Optional
 
-import Messages
-from application.database import db
+import Globals
+from application.app import db
 from pydantic import BaseModel, constr, validator
 
 
@@ -20,21 +20,52 @@ class Login(db.Model):
     @validator("senha", pre=True)
     def is_str(cls, v):
         if not isinstance(v, str):
-            raise ValueError(Messages.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
         return v
 
     @validator("usuario_id", "acesso_id", pre=True)
     def is_int(cls, v):
         if not isinstance(v, int):
-            raise ValueError(Messages.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
         return v
 
     @validator("email", pre=True)
     def is_email(cls, v):
         reg = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
         if isinstance(re.fullmatch(reg, v), re.Match):
-            raise ValueError(Messages.INVALID_EMAIL.format(type(v)))
+            raise ValueError(Globals.INVALID_EMAIL.format(type(v)))
         return v
+
+    def to_dict(self):
+        return {"email": self.email, "usuario_id": self.email, "acesso_id": self.acesso_id}
+
+    def to_dict_complete(self):
+        return {
+                "error": False,
+                "id": self.id,
+                "email": self.email,
+                "usuario_id": self.usuario_id,
+                "usuario": {
+                    "id": self.usuario.id,
+                    "nome": self.usuario.nome,
+                    "cpf": self.usuario.cpf,
+                    "pis": self.usuario.pis,
+                    "endereco": {
+                        "cep": self.usuario.endereco.cep,
+                        "rua": self.usuario.endereco.rua,
+                        "numero": self.usuario.endereco.numero,
+                        "bairro": self.usuario.endereco.bairro,
+                        "complemento": self.usuario.endereco.complemento,
+                        "municipio": self.usuario.endereco.municipio.nome,
+                        "estado": self.usuario.endereco.municipio.estado.nome,
+                        "estado_sigla": self.usuario.endereco.municipio.estado.sigla,
+                        "pais": self.usuario.endereco.municipio.estado.pais.nome,
+                    }
+                }if self.usuario_id is not None
+                else None,
+                "acesso_id": self.acesso_id,
+                "acesso": {"id": self.acesso.id, "nome": self.acesso.nome},
+              }
 
 
 class LoginModel(BaseModel):

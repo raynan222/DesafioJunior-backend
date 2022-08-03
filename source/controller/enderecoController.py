@@ -2,9 +2,8 @@ from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import exc
 
-from application.app import app
-from application.database import db
-from source.controller import paginate, Messages, field_validator
+from application.app import app, db
+from source.controller import paginate, Globals, field_validator
 from source.model import Login
 from source.model.enderecoTable import Endereco, EnderecoModel
 
@@ -46,17 +45,11 @@ def enderecoView(query_id: int):
 
     if not endereco:
         return jsonify(
-            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
-    dado = {"error": False}
-    dado["id"] = endereco.id
-    dado["cep"] = endereco.cep
-    dado["rua"] = endereco.rua
-    dado["numero"] = endereco.numero
-    dado["bairro"] = endereco.bairro
-    dado["complemento"] = endereco.complemento
-    dado["municipio"] = endereco.municipio_id
+    dado = endereco.to_dict_complete()
+    dado["error"] = False
 
     return jsonify(dado)
 
@@ -101,16 +94,7 @@ def enderecoList():
     enderecos, dados = paginate(query, page, rows_per_page)
 
     for endereco in enderecos:
-        dado = {}
-        dado["id"] = endereco.id
-        dado["cep"] = endereco.cep
-        dado["rua"] = endereco.rua
-        dado["numero"] = endereco.numero
-        dado["bairro"] = endereco.bairro
-        dado["complemento"] = endereco.complemento
-        dado["municipio"] = endereco.municipio_id
-
-        dados["itens"].append(dado)
+        dados["itens"].append(endereco.to_dict_complete())
 
     return jsonify(dados)
 
@@ -167,18 +151,18 @@ def enderecoUpdate(query_id: int):
     if login is None:
         return jsonify(
             {
-                "message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()),
+                "message": Globals.REGISTER_NOT_FOUND.format(get_jwt_identity()),
                 "error": True,
             }
         )
-    if login.acesso.nome != "administração":
+    if login.acesso.nome != "administracao":
         query_id = login.usuario.endereco_id
 
     # recebe os dados do login a ser editado
     edit = Endereco.query.get(query_id)
     if not edit:
         return jsonify(
-            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
     for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
@@ -190,12 +174,12 @@ def enderecoUpdate(query_id: int):
         db.session.commit()
         return jsonify(
             {
-                "message": Messages.REGISTER_SUCCESS_UPDATED.format("login"),
+                "message": Globals.REGISTER_SUCCESS_UPDATED.format("login"),
                 "error": False,
             }
         )
     except exc.IntegrityError:
         db.session.rollback()
         return jsonify(
-            {"message": Messages.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
+            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
         )

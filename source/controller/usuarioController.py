@@ -4,15 +4,14 @@ from flask import request, jsonify
 from sqlalchemy import or_
 from sqlalchemy import exc
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from application.app import app
-from application.database import db
-from source.controller import paginate, Messages, field_validator
+from application.app import app, db
+from source.controller import paginate, Globals, field_validator
 from source.model import Login
 from source.model.usuarioTable import Usuario, UsuarioModel
 
 
 # C
-@app.route("/usuario/add", methods=["POST"])
+@app.route("/usuario/add", methods=["PUT"])
 @jwt_required
 @field_validator(UsuarioModel)
 def usuarioCreation():
@@ -63,23 +62,30 @@ def usuarioCreation():
     usuario = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
     if usuario is not None:
         return jsonify(
-            {"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
+            {"message": Globals.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
         )
 
     usuario = Usuario(
         nome=dados["nome"],
         pis=re.sub("[^\\d+$]", "", dados["pis"]),
         cpf=re.sub("[^\\d+$]", "", dados["cpf"]),
+        endereco_id=dados["endereco_id"]
     )
 
     db.session.add(usuario)
 
     try:
         db.session.commit()
+        return jsonify(
+            {
+                "message": Globals.REGISTER_SUCCESS_CREATED.format("Login"),
+                "error": False,
+            }
+        )
     except exc.IntegrityError:
         db.session.rollback()
         return jsonify(
-            {"message": Messages.REGISTER_CREATE_INTEGRITY_ERROR, "error": True}
+            {"message": Globals.REGISTER_CREATE_INTEGRITY_ERROR, "error": True}
         )
 
 
@@ -122,25 +128,22 @@ def usuarioView(query_id: int):
     if login is None:
         return jsonify(
             {
-                "message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()),
+                "message": Globals.REGISTER_NOT_FOUND.format(get_jwt_identity()),
                 "error": True,
             }
         )
-    if login.acesso.nome != "administração":
+    if login.acesso.nome != "administracao":
         query_id = login.usuario_id
 
     usuario = Usuario.query.get(query_id)
 
     if not usuario:
         return jsonify(
-            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
-    dict = {"error": False}
-    dict["nome"] = usuario.nome
-    dict["pis"] = usuario.pis
-    dict["cpf"] = usuario.cpf
-    dict["id"] = usuario.id
+    dict = usuario.to_dict()
+    dict["error"] = False
 
     return jsonify(dict)
 
@@ -193,13 +196,7 @@ def usuarioList():
     usuarios, dados = paginate(query, page, rows_per_page)
 
     for usuario in usuarios:
-        dict = {}
-        dict["nome"] = usuario.nome
-        dict["cpf"] = usuario.cpf
-        dict["pis"] = usuario.pis
-        dict["id"] = usuario.id
-
-        dados["itens"].append(dict)
+        dados["itens"].append(usuario.to_dict())
 
     return jsonify(dados)
 
@@ -255,18 +252,18 @@ def usuarioUpdate(query_id: int):
     if login is None:
         return jsonify(
             {
-                "message": Messages.REGISTER_NOT_FOUND.format(get_jwt_identity()),
+                "message": Globals.REGISTER_NOT_FOUND.format(get_jwt_identity()),
                 "error": True,
             }
         )
-    if login.acesso.nome != "administração":
+    if login.acesso.nome != "administracao":
         query_id = login.usuario_id
 
     # recebe os dados do usuario a ser editado
     edit = Usuario.query.get(query_id)
     if not edit:
         return jsonify(
-            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
     # checa validade dos dados
@@ -277,7 +274,7 @@ def usuarioUpdate(query_id: int):
     ).first()
     if existente is not None:
         return jsonify(
-            {"message": Messages.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
+            {"message": Globals.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
         )
 
     for campo in ["nome", "cpf", "pis"]:
@@ -287,14 +284,14 @@ def usuarioUpdate(query_id: int):
         db.session.commit()
         return jsonify(
             {
-                "message": Messages.REGISTER_SUCCESS_UPDATED.format("usuario"),
+                "message": Globals.REGISTER_SUCCESS_UPDATED.format("usuario"),
                 "error": False,
             }
         )
     except exc.IntegrityError:
         db.session.rollback()
         return jsonify(
-            {"message": Messages.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
+            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
         )
 
 
@@ -339,13 +336,13 @@ def usuarioDelete(query_id: int):
 
     if not usuario:
         return jsonify(
-            {"message": Messages.REGISTER_NOT_FOUND.format(query_id), "error": True}
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
     login = Login.query.get(get_jwt_identity())
 
-    if login.acesso.nome != "administração" and login.usuario_id != usuario.id:
-        return jsonify({"message": Messages.USER_INVALID_DELETE, "error": True})
+    if login.acesso.nome != "administracao" and login.usuario_id != usuario.id:
+        return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
 
     db.session.delete(usuario)
 
@@ -353,11 +350,11 @@ def usuarioDelete(query_id: int):
         db.session.commit()
         return jsonify(
             {
-                "message": Messages.REGISTER_SUCCESS_DELETED.format("Usuário"),
+                "message": Globals.REGISTER_SUCCESS_DELETED.format("Usuário"),
                 "error": False,
             }
         )
     except exc.IntegrityError:
         return jsonify(
-            {"message": Messages.REGISTER_DELETE_INTEGRITY_ERROR, "error": True}
+            {"message": Globals.REGISTER_DELETE_INTEGRITY_ERROR, "error": True}
         )

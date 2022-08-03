@@ -1,4 +1,4 @@
-from application.database import db
+from application.app import db
 from pydantic import BaseModel, constr
 
 
@@ -9,6 +9,7 @@ class Municipio(db.Model):
     nome = db.Column(db.String(255), nullable=False)
     uf_id = db.Column(db.Integer, db.ForeignKey("estado.id"), nullable=False)
 
+    enderecos = db.relationship("Endereco", backref="municipio", lazy=True)
 
 class MunicipioModel(BaseModel):
     nome: constr(max_length=255)

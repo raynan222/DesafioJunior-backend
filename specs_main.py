@@ -4,6 +4,10 @@ import json
 
 from application.app import app
 
+from source.controller.authenticationController import (
+    login,
+)
+
 from source.controller.acessoController import (
     acessoView,
     acessoList,
@@ -21,7 +25,9 @@ from source.controller.loginController import (
     cadastroLogin,
     loginCreation,
     loginView,
+    loginCompleteView,
     loginList,
+    loginCompleteList,
     loginUpdate,
     loginDelete,
 )
@@ -56,9 +62,9 @@ spec.components.security_scheme("jwt", jwt_scheme)
 
 with app.app_context():
 
-    f = open("utils/out.txt", "w")
-    f.write(json.dumps(spec.to_dict(), indent=4))
-    f.close()
+    # f = open("out.txt", "w")
+    # f.write(json.dumps(spec.to_dict(), indent=4))
+    # f.close()
     models = [
         AcessoModel.schema(),
         EnderecoModel.schema(),
@@ -70,6 +76,7 @@ with app.app_context():
         spec.tag(dict(name="Rotas", description="Rotas"))
 
     paths = [
+        login,
         acessoView,
         acessoList,
         enderecoView,
@@ -78,7 +85,9 @@ with app.app_context():
         cadastroLogin,
         loginCreation,
         loginView,
+        loginCompleteView,
         loginList,
+        loginCompleteList,
         loginUpdate,
         loginDelete,
         usuarioCreation,

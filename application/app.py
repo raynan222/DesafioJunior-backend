@@ -1,27 +1,29 @@
-from datetime import timedelta
+import os
 
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_migrate import Migrate, MigrateCommand
+from flask_script import Manager, Server
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-jwt = JWTManager(app)
-app.config["JWT_SECRET_KEY"] = "abc"
-app.config["ROWS_PER_PAGE"] = 10
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
+app.config.from_object('config')
 
 CORS(app)  # Se o deploy for em vpc ou de msm origem, remover cors
 
+jwt = JWTManager(app)
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
+manager = Manager(app)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+server = Server(host="0.0.0.0", port=os.getenv("PORT", 5000))
+manager.add_command("runserver", server)
+manager.add_command("db", MigrateCommand)
 
-import Messages
+import Globals
 import source.model
 from source.controller import acessoController
 from source.controller import authenticationController

@@ -1,4 +1,4 @@
-from application.database import db
+from application.app import db
 from pydantic import BaseModel, constr
 
 

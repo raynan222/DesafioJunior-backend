@@ -1,7 +1,7 @@
 from typing import Optional
 from validate_docbr import CPF, PIS
-import Messages
-from application.database import db
+import Globals
+from application.app import db
 from pydantic import BaseModel, constr, validator
 
 
@@ -14,23 +14,32 @@ class Usuario(db.Model):
     cpf = db.Column(db.String(50), unique=True, nullable=False)
     endereco_id = db.Column(db.BigInteger, db.ForeignKey("endereco.id"), nullable=False)
 
+    logins = db.relationship("Login", backref="usuario", lazy=True, viewonly=True)
+
     @validator("nome", pre=True)
     def is_str(cls, v):
         if not isinstance(v, str):
-            raise ValueError(Messages.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
         return v
 
     @validator("pis", pre=True)
-    def is_int(cls, v):
+    def is_pis(cls, v):
         if not PIS().validate(v):
-            raise ValueError(Messages.INVALID_PIS.format(type(v)))
+            raise ValueError(Globals.INVALID_PIS.format(type(v)))
         return v
 
     @validator("cpf", pre=True)
-    def is_int(cls, v):
+    def is_cpf(cls, v):
         if not CPF().validate(v):
-            raise ValueError(Messages.INVALID_CPF.format(type(v)))
+            raise ValueError(Globals.INVALID_CPF.format(type(v)))
         return v
+
+    def to_dict(self):
+        return {"id": self.id,
+                "nome": self.nome,
+                "pis": self.pis,
+                "cpf": self.cpf,
+                "endereco_id": self.endereco_id}
 
 
 class UsuarioModel(BaseModel):
