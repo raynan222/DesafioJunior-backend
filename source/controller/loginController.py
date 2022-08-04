@@ -321,7 +321,7 @@ def loginCompleteView(query_id: int):
         )
 
     query = Login.query.get(query_id)
-    if login_atual.acesso.nome != "administracao" or login_atual.id != query.id:
+    if login_atual.id != query_id and login_atual.acesso.nome != "administracao":
         return jsonify({"message": Globals.AUTH_USER_DENIED, "error": True})
 
     return (
