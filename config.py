@@ -1,9 +1,16 @@
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+load_dotenv()
 
 DEBUG = True
 
-SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@localhost/web_app'
+default = 'postgresql://postgres:postgres@localhost/web_app'
+
+# db for deployment
+SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', default)
+# db for unit test
+SQLALCHEMY_TEST_DATABASE_URI = os.getenv('DATABASE_TEST_URI', None)
 
 JWT_SECRET_KEY = 'DG2yKyvb9HRUSrysF'
 ROWS_PER_PAGE = 10
