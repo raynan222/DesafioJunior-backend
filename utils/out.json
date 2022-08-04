@@ -212,54 +212,6 @@
                 }
             }
         },
-        "/login/view/complete/{query_id}": {
-            "get": {
-                "security": [
-                    {
-                        "jwt": []
-                    }
-                ],
-                "summary": "Busca o registros do banco se ele existir",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "query_id",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "required": true,
-                        "description": "Identifica\u00e7\u00e3o \u00fanica do registro"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/LoginModel"
-                                }
-                            }
-                        }
-                    },
-                    "204": {
-                        "description": "Ocorreu um erro",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/endereco/list": {
             "get": {
                 "security": [
@@ -290,54 +242,6 @@
                                         "count",
                                         "items"
                                     ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/login/list/complete": {
-            "get": {
-                "security": [
-                    {
-                        "jwt": []
-                    }
-                ],
-                "summary": "Busca o registros do banco se ele existir",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "query_id",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "required": true,
-                        "description": "Identifica\u00e7\u00e3o \u00fanica do registro"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/LoginModel"
-                                }
-                            }
-                        }
-                    },
-                    "204": {
-                        "description": "Ocorreu um erro",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -602,7 +506,103 @@
                 }
             }
         },
+        "/login/view/complete/{query_id}": {
+            "get": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "summary": "Busca o registros do banco se ele existir",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "query_id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true,
+                        "description": "Identifica\u00e7\u00e3o \u00fanica do registro"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginModel"
+                                }
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "Ocorreu um erro",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login/list": {
+            "get": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "summary": "Busca lista de registro existentes no banco",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "email para filtro",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "count": {
+                                            "type": "integer"
+                                        },
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/LoginModel"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "count",
+                                        "items"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login/list/complete": {
             "get": {
                 "security": [
                     {
@@ -674,7 +674,143 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/LoginModel"
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "senha": {
+                                        "type": "string"
+                                    },
+                                    "nome": {
+                                        "type": "string"
+                                    },
+                                    "pis": {
+                                        "type": "string"
+                                    },
+                                    "cpf": {
+                                        "type": "string"
+                                    },
+                                    "cep": {
+                                        "type": "string"
+                                    },
+                                    "rua": {
+                                        "type": "string"
+                                    },
+                                    "numero": {
+                                        "type": "string"
+                                    },
+                                    "bairro": {
+                                        "type": "string"
+                                    },
+                                    "complemento": {
+                                        "type": "string"
+                                    },
+                                    "municipio_id": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ocorreu um erro",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login/update/complete/{query_id}": {
+            "put": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "summary": "Edita um registro",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "query_id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true,
+                        "description": "Identifica\u00e7\u00e3o \u00fanica do registro"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Dados necess\u00e1rios para a edi\u00e7\u00e3o do registro",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "senha": {
+                                        "type": "string"
+                                    },
+                                    "acesso_id": {
+                                        "type": "integer"
+                                    },
+                                    "nome": {
+                                        "type": "string"
+                                    },
+                                    "pis": {
+                                        "type": "string"
+                                    },
+                                    "cpf": {
+                                        "type": "string"
+                                    },
+                                    "cep": {
+                                        "type": "string"
+                                    },
+                                    "rua": {
+                                        "type": "string"
+                                    },
+                                    "numero": {
+                                        "type": "string"
+                                    },
+                                    "bairro": {
+                                        "type": "string"
+                                    },
+                                    "complemento": {
+                                        "type": "string"
+                                    },
+                                    "municipio_id": {
+                                        "type": "integer"
+                                    }
+                                }
                             }
                         }
                     }

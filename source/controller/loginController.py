@@ -387,35 +387,36 @@ def loginList():
 @app.route("/login/list/complete", methods=["GET"])
 @jwt_required
 def loginCompleteList():
-    """Busca registro por ID
+    """Busca lista de registros
     ---
     get:
-      security:
-        - jwt: []
-      summary: Busca o registros do banco se ele existir
-      parameters:
-        - in: path
-          name: Filter
-          schema:
-            type: integer
-          required: true
-          description: Identificação única do registro
-      responses:
-        200:
-            description: "Sucesso"
-            content:
-                application/json:
-                    schema:
-                        $ref: "#/components/schemas/LoginModel"
-        204:
-            description: "Ocorreu um erro"
-            content:
-                application/json:
-                  schema:
-                      type: object
-                      properties:
-                        error:
-                          type: string
+        security:
+            - jwt: []
+        summary: Busca lista de registro existentes no banco
+        parameters:
+            - name: email
+              in: query
+              description: email para filtro
+              required: false
+              schema:
+                type: string
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                count:
+                                    type: integer
+                                items:
+                                    type: array
+                                    items:
+                                        $ref: "#/components/schemas/LoginModel"
+                            required:
+                                - count
+                                - items
     """
     login_atual = Login.query.get(get_jwt_identity())
     if login_atual is None:
@@ -439,7 +440,7 @@ def loginCompleteList():
 
     if email_filter is not None:
         query = query.filter(Login.email.ilike("%%{}%%".format(email_filter.lower())))
-    elif email_filter is not None:
+    elif nome_filter is not None:
         query = query.filter(Login.usuario.nome.ilike("%%{}%%".format(nome_filter)))
 
     logins, dados = paginate(query, page, rows_per_page)
@@ -472,7 +473,30 @@ def loginUpdate(query_id: int):
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/LoginModel'
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    senha:
+                      type: string
+                    nome:
+                      type: string
+                    pis:
+                      type: string
+                    cpf:
+                      type: string
+                    cep:
+                      type: string
+                    rua:
+                      type: string
+                    numero:
+                      type: string
+                    bairro:
+                      type: string
+                    complemento:
+                      type: string
+                    municipio_id:
+                      type: integer
         responses:
             200:
                 description: "Sucesso"
@@ -525,6 +549,155 @@ def loginUpdate(query_id: int):
     for campo in ["email", "usuario_id", "acesso_id"]:
         if dado.get(campo):
             setattr(edit, campo, dado.get(campo))
+
+    try:
+        db.session.commit()
+        return jsonify(
+            {
+                "message": Globals.REGISTER_SUCCESS_UPDATED.format("login"),
+                "error": False,
+            }
+        )
+    except exc.IntegrityError:
+        db.session.rollback()
+        return jsonify(
+            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
+        )
+
+# U
+@app.route("/login/update/complete/<int:query_id>", methods=["PUT"])
+@jwt_required
+@field_validator(LoginModel)
+@field_validator(UsuarioModel)
+@field_validator(EnderecoModel)
+def loginCompleteUpdate(query_id: int):
+    """Adiciona registro
+    ---
+    put:
+        security:
+            - jwt: []
+        summary: Edita um registro
+        parameters:
+        - in: path
+          name: query_id
+          schema:
+            type: integer
+          required: true
+          description: Identificação única do registro
+        requestBody:
+            description: Dados necessários para a edição do registro
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    senha:
+                      type: string
+                    acesso_id:
+                      type: integer
+                    nome:
+                      type: string
+                    pis:
+                      type: string
+                    cpf:
+                      type: string
+                    cep:
+                      type: string
+                    rua:
+                      type: string
+                    numero:
+                      type: string
+                    bairro:
+                      type: string
+                    complemento:
+                      type: string
+                    municipio_id:
+                      type: integer
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
+    dado = request.get_json()
+
+    login = Login.query.get(get_jwt_identity())
+
+    # Login edita a si mesmo
+    if login is None:
+        return jsonify(
+            {
+                "message": Globals.REGISTER_NOT_FOUND.format(get_jwt_identity()),
+                "error": True,
+            }
+        )
+    if login.acesso.nome != "administracao":
+        query_id = login.id
+        del dado["acesso_id"]
+
+    # recebe os dados do login a ser editado
+    login_edit = Login.query.get(query_id)
+    if not login_edit:
+        return jsonify(
+            {"message": Globals.REGISTER_NOT_FOUND.format("login_id"), "error": True}
+        )
+
+    # mudança de senha, somente realizado pelo proprio
+    if login.id == login_edit.id:
+        # checa a mudança na senha
+        if dado.get("senha") is not None:
+            senha_hashed = generate_password_hash(dado.get("senha"), method="sha256")
+            login.senha = senha_hashed
+
+    for campo in ["email", "acesso_id"]:
+        if dado.get(campo):
+            setattr(login_edit, campo, dado.get(campo))
+
+    #atualiza usuario
+    usuario_edit = Usuario.query.get(login_edit.usuario_id)
+
+    cpf = str()
+    if dado.get("cpf") is not None:
+        dado["cpf"] = re.sub("[^\\d+$]", "", dado.get("cpf"))
+        cpf = dado["cpf"]
+
+    pis = str()
+    if dado.get("pis") is not None:
+        dado["pis"] = re.sub("[^\\d+$]", "", dado.get("pis"))
+        pis = dado["pis"]
+
+    existing_data = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
+    if existing_data is not None:
+        return jsonify(
+            {"message": Globals.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
+        )
+
+    for campo in ["nome", "pis", "cpf"]:
+        if dado.get(campo):
+            setattr(usuario_edit, campo, dado.get(campo))
+
+    #Atualiza endereco
+    endereco_edit = Endereco.query.get(login_edit.usuario.endereco_id)
+    for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
+        if dado.get(campo):
+            setattr(endereco_edit, campo, dado.get(campo))
+
 
     try:
         db.session.commit()

@@ -60,7 +60,8 @@ class Login(db.Model):
                         "estado": self.usuario.endereco.municipio.estado.nome,
                         "estado_sigla": self.usuario.endereco.municipio.estado.sigla,
                         "pais": self.usuario.endereco.municipio.estado.pais.nome,
-                    }
+                    },
+                    "endereco_id": self.usuario.endereco_id,
                 }if self.usuario_id is not None
                 else None,
                 "acesso_id": self.acesso_id,

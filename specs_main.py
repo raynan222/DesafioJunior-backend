@@ -29,6 +29,7 @@ from source.controller.loginController import (
     loginList,
     loginCompleteList,
     loginUpdate,
+    loginCompleteUpdate,
     loginDelete,
 )
 from source.model.loginTable import LoginModel
@@ -61,10 +62,6 @@ jwt_scheme = {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
 spec.components.security_scheme("jwt", jwt_scheme)
 
 with app.app_context():
-
-    # f = open("out.txt", "w")
-    # f.write(json.dumps(spec.to_dict(), indent=4))
-    # f.close()
     models = [
         AcessoModel.schema(),
         EnderecoModel.schema(),
@@ -89,6 +86,7 @@ with app.app_context():
         loginList,
         loginCompleteList,
         loginUpdate,
+        loginCompleteUpdate,
         loginDelete,
         usuarioCreation,
         usuarioView,
