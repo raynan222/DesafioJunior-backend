@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Server
 from flask_sqlalchemy import SQLAlchemy
+from utils.db.db_cidade_estado_populate import Populate
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -16,12 +17,12 @@ jwt = JWTManager(app)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-
 manager = Manager(app)
 
-server = Server(host="0.0.0.0", port=os.getenv("PORT", 5000))
+server = Server(host="0.0.0.0", port=os.getenv("PORT", 5000), )
 manager.add_command("runserver", server)
 manager.add_command("db", MigrateCommand)
+manager.add_command("populate", Populate)
 
 import Globals
 import source.model

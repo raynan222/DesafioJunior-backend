@@ -1,10 +1,10 @@
 import json
-
-from application.app import db
-from source.model import Estado, Pais, Municipio
-
+from flask_script import Command
 
 def insert_pais(nome: str):
+    from application.app import db
+    from source.model import Pais
+
     pais = Pais()
     pais.nome = nome
     db.session.add(pais)
@@ -17,6 +17,9 @@ def insert_pais(nome: str):
 
 
 def insert_estado(nome: str, sigla: str, pais_id: int):
+    from application.app import db
+    from source.model import Estado
+
     estado = Estado()
     estado.nome = nome
     estado.sigla = sigla
@@ -31,6 +34,9 @@ def insert_estado(nome: str, sigla: str, pais_id: int):
 
 
 def insert_cidades(lista_cidades: list, uf_id: int):
+    from application.app import db
+    from source.model import Municipio
+
     for nome in lista_cidades:
         municipio = Municipio()
         municipio.nome = nome
@@ -41,12 +47,17 @@ def insert_cidades(lista_cidades: list, uf_id: int):
         except Exception as e:
             print("insert de cidade nao realizado ->", e)
 
+#Gerenciador de comandos para ser executado por manager
+class Populate(Command):
+    def run(self):
+        main()
 
-with open('cidade_estados.json', encoding="utf8") as f:
-    data = json.load(f)
+def main():
+    with open('./utils/db/cidade_estados.json', encoding="utf8") as f:
+        data = json.load(f)
 
-pais_id = insert_pais("Brasil")
-for value in data.values():
-    for estado in value:
-        uf_id = insert_estado(nome=estado["nome"], sigla=estado["sigla"], pais_id=pais_id)
-        insert_cidades(lista_cidades=estado["cidades"], uf_id=uf_id)
+    pais_id = insert_pais("Brasil")
+    for value in data.values():
+        for estado in value:
+            uf_id = insert_estado(nome=estado["nome"], sigla=estado["sigla"], pais_id=pais_id)
+            insert_cidades(lista_cidades=estado["cidades"], uf_id=uf_id)
