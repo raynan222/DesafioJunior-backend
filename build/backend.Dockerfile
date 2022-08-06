@@ -1,6 +1,8 @@
 FROM python:3.9.13-slim
 
-RUN apt-get update
+WORKDIR /backend
+
+RUN apt-get update -y
 RUN apt-get install -y locales locales-all
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
@@ -8,14 +10,10 @@ ENV LANGUAGE en_US.UTF-8
 
 RUN pip install poetry
 
-COPY ./poetry.lock .
-COPY ./pyproject.toml .
-
-WORKDIR $APP_PATH
+COPY ./desafioJunior-backend/build/poetry.lock .
+COPY ./desafioJunior-backend/build/pyproject.toml .
 
 RUN poetry config virtualenvs.create false
 RUN poetry install
 
-COPY . ../
-
-RUN ls
+COPY ./desafioJunior-backend ./

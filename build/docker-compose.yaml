@@ -1,50 +1,53 @@
 version: '3'
 
 services:
-  web-back:
-    image: pontotel-desafio-backend:1.0
+  backend:
+    image: desafio-junior-backend:latest
     build:
       context: .
-      dockerfile: ../build/Dockerfile.backend
+      dockerfile: ./desafioJunior-backend/build/backend.postgres.Dockerfile
     env_file:
-      - ../.env
-    volumes:
-      - './:/backend'
+      - ./desafioJunior-backend/.env
     depends_on:
       - postgres
     networks:
         - backend
         - frontend
-    command: python -m gunicorn --workers 1 --bind 0.0.0.0:8080 -m 007 application:app
-#  web-front:
-#    image: pontotel-desafio-frontend:1.0
-#    build:
-#      context: .
-#      dockerfile: ./build/Dockerfile.frontend
-#    volumes:
-#      - './:/frontend'
-#    env_file:
-#      - ./..env
-#    depends_on:
-#      - web-back
-#    networks:
-#      - frontend
-#    command: npm run start
-
+    ports:
+      - "5000:5000"
+    command: python -m gunicorn --workers 1 --bind 0.0.0.0:5000 -m 007 application:app
+  frontend:
+    image: desafio-junior-frontend:latest
+    build:
+      context: .
+      dockerfile: ./desafioJunior-backend/build/frontend.Dockerfile
+    env_file:
+      - ./desafioJunior-backend/.env
+    depends_on:
+      - backend
+    networks:
+      - frontend
+    ports:
+      - "3000:3000"
+    command: npm run start
   postgres:
-    image: postgres:14.0-alpine
+    image: desafio-junior-postgres:latest
+    build:
+      context: .
+      dockerfile: ./desafioJunior-backend/build/postgres.Dockerfile
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
-      - ../.env
+      - ./desafioJunior-backend/.env
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
-      POSTGRES_DB: default_database
+      POSTGRES_DB: web_app
     networks:
       - backend
     ports:
       - "5432:5432"
+
 volumes:
   postgres_data:
 
