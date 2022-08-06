@@ -1,10 +1,12 @@
+import re
+
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import exc
 
 from application.app import app, db
 from source.controller import paginate, Globals, field_validator
-from source.model import Login
+from source.model import Login, Municipio, Estado, Pais
 from source.model.enderecoTable import Endereco, EnderecoModel
 
 
@@ -96,7 +98,189 @@ def enderecoList():
     for endereco in enderecos:
         dados["itens"].append(endereco.to_dict_complete())
 
+    dados["error"] = False
     return jsonify(dados)
+
+@app.route("/municipio/list", methods=["GET"])
+def municipioList():
+    """Busca lista de registros
+    ---
+    get:
+        security:
+            - jwt: []
+        summary: Busca lista de registro existentes no banco
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                count:
+                                    type: integer
+                                items:
+                                    type: array
+                                    items:
+                                        $ref: "#/components/schemas/EnderecoModel"
+                            required:
+                                - count
+                                - items
+    """
+    page = request.args.get("page", 1, type=int)
+    rows_per_page = request.args.get(
+        "rows_per_page", app.config["ROWS_PER_PAGE"], type=int
+    )
+    nome_filter = request.args.get("nome", None)
+    query = Municipio.query
+
+    if nome_filter is not None:
+        query = query.filter(Municipio.nome.ilike("{}%%".format(nome_filter)))
+
+
+    municipios, dados = paginate(query, page, rows_per_page)
+
+    for municipio in municipios:
+        dado = municipio.to_dict()
+        dado["estado"] = municipio.estado.nome
+        dados["itens"].append(dado)
+    dados["error"] = False
+    return jsonify(dados)
+
+@app.route("/municipio/view/<int:query_id>", methods=["GET"])
+def municipioView(query_id: int):
+    """Busca registro por ID
+    ---
+    get:
+      security:
+        - jwt: []
+      summary: Busca o registro do banco se ele existir
+      parameters:
+        - in: path
+          name: query_id
+          schema:
+            type: integer
+          required: true
+          description: Identificação única do registro
+      responses:
+        200:
+            description: "Sucesso"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnderecoModel"
+        204:
+            description: "Ocorreu um erro"
+            content:
+                application/json:
+                  schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
+    municipio = Municipio.query.get(query_id)
+
+    if not municipio:
+        return jsonify(
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
+        )
+
+    dado = municipio.to_dict()
+    dado["estado"] = municipio.estado.nome
+    dado["error"] = False
+
+    return jsonify(dado)
+
+@app.route("/estado/list", methods=["GET"])
+@jwt_required
+def estadoList():
+    """Busca lista de registros
+    ---
+    get:
+        security:
+            - jwt: []
+        summary: Busca lista de registro existentes no banco
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                count:
+                                    type: integer
+                                items:
+                                    type: array
+                                    items:
+                                        $ref: "#/components/schemas/EnderecoModel"
+                            required:
+                                - count
+                                - items
+    """
+    page = request.args.get("page", 1, type=int)
+    rows_per_page = request.args.get(
+        "rows_per_page", app.config["ROWS_PER_PAGE"], type=int
+    )
+    nome = request.args.get("nome", None)
+    query = Estado.query
+
+    pais_id = request.args.get("pais_id")
+    if nome is not None:
+        query = query.filter(Estado.pais_id == pais_id)
+
+    estados, dados = paginate(query, page, rows_per_page)
+
+    for estado in estados:
+        dados["itens"].append(estado.to_dict())
+
+    return jsonify(dados)
+
+@app.route("/pais/list", methods=["GET"])
+@jwt_required
+def paisList():
+    """Busca lista de registros
+    ---
+    get:
+        security:
+            - jwt: []
+        summary: Busca lista de registro existentes no banco
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                count:
+                                    type: integer
+                                items:
+                                    type: array
+                                    items:
+                                        $ref: "#/components/schemas/EnderecoModel"
+                            required:
+                                - count
+                                - items
+    """
+    page = request.args.get("page", 1, type=int)
+    rows_per_page = request.args.get(
+        "rows_per_page", app.config["ROWS_PER_PAGE"], type=int
+    )
+    nome = request.args.get("nome", None)
+    query = Pais.query
+
+    if nome is not None:
+        query = query.filter(Pais.nome.ilike("%%{}%%".format(nome)))
+
+    paises, dados = paginate(query, page, rows_per_page)
+
+    for pais in paises:
+        dados["itens"].append(pais.to_dict())
+
+    return jsonify(dados)
+
 
 
 # U
@@ -165,6 +349,8 @@ def enderecoUpdate(query_id: int):
             {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
+    if dado["cep"] is not None:
+        dado["cep"] = re.sub("[^\d]", "", dado.get("cep"))
     for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
         if dado.get(campo):
             print(campo)

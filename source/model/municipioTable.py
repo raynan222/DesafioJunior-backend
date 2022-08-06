@@ -11,6 +11,9 @@ class Municipio(db.Model):
 
     enderecos = db.relationship("Endereco", backref="municipio", lazy=True)
 
+    def to_dict(self):
+        return {"id": self.id, "nome": self.nome, "uf_id": self.uf_id}
+
 class MunicipioModel(BaseModel):
     nome: constr(max_length=255)
     uf_id: int

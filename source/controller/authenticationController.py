@@ -71,17 +71,15 @@ def login():
             )
         ).first()
 
-    retorno = {"form": [], "error": False}
-
     if not login:
-        retorno["form"].append({"message": Globals.AUTH_USER_NOT_FOUND})
-        retorno["error"] = True
+        return jsonify(
+            {"message": Globals.AUTH_USER_NOT_FOUND, "error": True}
+        )
     elif not check_password_hash(login.senha, str(dado.get("senha"))):
-        retorno["form"].append({"message": Globals.AUTH_USER_PASS_ERROR})
-        retorno["error"] = True
+        return jsonify(
+            {"message": Globals.AUTH_USER_PASS_ERROR, "error": True}
+        )
 
-    if retorno["error"]:
-        return jsonify(retorno)
     usuario = Usuario.query.get(login.usuario_id)
     return (
         jsonify(

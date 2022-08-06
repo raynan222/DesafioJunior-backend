@@ -1,7 +1,7 @@
 import re
 
 from flask import request, jsonify
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from application.app import app, db
 from source.controller import paginate, Globals, field_validator
 from source.model.enderecoTable import Endereco, EnderecoModel
@@ -90,10 +90,12 @@ def cadastroLogin():
         )
 
     # Checa existencia de um usuario ja cadastrado com os dados informados
-    cpf = re.sub("[^\\d+$]", "", dado.get("cpf"))
-    pis = re.sub("[^\\d+$]", "", dado.get("pis"))
-    usuario = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
-    if usuario is not None:
+    dado["cpf"] = re.sub("[^\d]", "", dado.get("cpf"))
+    dado["pis"] = re.sub("[^\d]", "", dado.get("pis"))
+    existente = Usuario.query.filter(
+        or_(Usuario.cpf == dado["cpf"], Usuario.pis == dado["pis"])
+    ).first()
+    if existente is not None:
         return jsonify(
             {"message": Globals.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
         )
@@ -103,6 +105,7 @@ def cadastroLogin():
 
     # Cadastra o endereço
     endereco = Endereco()
+    dado["cep"] = re.sub("[^\d]", "", dado.get("cep"))
     for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
         if dado.get(campo):
             setattr(endereco, campo, dado.get(campo))
@@ -272,10 +275,10 @@ def loginView(query_id: int):
             {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
-    dict = login.to_dict()
-    dict["error"] = False
+    dic = login.to_dict()
+    dic["error"] = False
 
-    return jsonify(dict)
+    return jsonify(dic)
 
 
 @app.route("/login/view/complete/<int:query_id>", methods=["GET"])
@@ -384,6 +387,7 @@ def loginList():
 
     return jsonify(dados)
 
+
 @app.route("/login/list/complete", methods=["GET"])
 @jwt_required
 def loginCompleteList():
@@ -450,6 +454,7 @@ def loginCompleteList():
 
     return jsonify(dados)
 
+
 # U
 @app.route("/login/update/<int:query_id>", methods=["PUT"])
 @jwt_required
@@ -476,8 +481,6 @@ def loginUpdate(query_id: int):
                   type: object
                   properties:
                     email:
-                      type: string
-                    senha:
                       type: string
                     nome:
                       type: string
@@ -540,13 +543,6 @@ def loginUpdate(query_id: int):
             {"message": Globals.REGISTER_NOT_FOUND.format("login_id"), "error": True}
         )
 
-    # mudança de senha, somente realizado pelo proprio
-    if login.id == edit.id:
-        # checa a mudança na senha
-        if dado.get("senha") is not None:
-            senha_hashed = generate_password_hash(dado.get("senha"), method="sha256")
-            login.senha = senha_hashed
-
     for campo in ["email", "usuario_id", "acesso_id"]:
         if dado.get(campo):
             setattr(edit, campo, dado.get(campo))
@@ -564,6 +560,91 @@ def loginUpdate(query_id: int):
         return jsonify(
             {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
         )
+
+
+# U
+@app.route("/login/update/senha", methods=["PUT"])
+@jwt_required
+@field_validator(LoginModel)
+def senhaUpdate():
+    """Adiciona registro
+    ---
+    put:
+        security:
+            - jwt: []
+        summary: Edita um registro
+        requestBody:
+            description: Dados necessários para a edição do registro
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    senha_antiga:
+                      type: string
+                    senha_nova1:
+                      type: string
+                    senha_nova2:
+                      type: string
+                  required:
+                    - senha_antiga
+                    - senha_nova1
+                    - senha_nova2
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
+    # mudança de senha, somente realizado pelo proprio
+
+    dado = request.get_json()
+
+    login = Login.query.get(get_jwt_identity())
+
+    if dado.get("senha_nova1") != dado.get("senha_nova2"):
+        return jsonify(
+            {"message": Globals.PASSWORDS_DONT_MATCH,
+             "error": True}
+        )
+
+    elif not check_password_hash(login.senha, str(dado.get("senha_antiga"))):
+        return jsonify(
+            {"message": Globals.AUTH_USER_PASS_ERROR,
+             "error": True}
+        )
+
+    # Realiza a mudança na senha
+    senha_hashed = generate_password_hash(dado.get("senha_nova1"), method="sha256")
+    login.senha = senha_hashed
+
+    try:
+        db.session.commit()
+        return jsonify(
+            {"message": Globals.REGISTER_SUCCESS_UPDATED.format("login"),
+             "error": False}
+        )
+    except exc.IntegrityError:
+        db.session.rollback()
+        return jsonify(
+            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR,
+             "error": True}
+        )
+
 
 # U
 @app.route("/login/update/complete/<int:query_id>", methods=["PUT"])
@@ -660,14 +741,12 @@ def loginCompleteUpdate(query_id: int):
         )
 
     # mudança de senha, somente realizado pelo proprio
-    if login.id == login_edit.id:
-        # checa a mudança na senha
-        if dado.get("senha") is not None:
+    if login.id == login_edit.id and dado.get("senha") is not None:
             senha_hashed = generate_password_hash(dado.get("senha"), method="sha256")
             login.senha = senha_hashed
 
     for campo in ["email", "acesso_id"]:
-        if dado.get(campo):
+        if dado.get(campo) is not None:
             setattr(login_edit, campo, dado.get(campo))
 
     #atualiza usuario
@@ -675,12 +754,12 @@ def loginCompleteUpdate(query_id: int):
 
     cpf = str()
     if dado.get("cpf") is not None:
-        dado["cpf"] = re.sub("[^\\d+$]", "", dado.get("cpf"))
+        dado["cpf"] = re.sub("[^\d]", "", dado.get("cpf"))
         cpf = dado["cpf"]
 
     pis = str()
     if dado.get("pis") is not None:
-        dado["pis"] = re.sub("[^\\d+$]", "", dado.get("pis"))
+        dado["pis"] = re.sub("[^\d]", "", dado.get("pis"))
         pis = dado["pis"]
 
     existing_data = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
@@ -695,6 +774,8 @@ def loginCompleteUpdate(query_id: int):
 
     #Atualiza endereco
     endereco_edit = Endereco.query.get(login_edit.usuario.endereco_id)
+    if dado["cep"] is not None:
+        dado["cep"] = re.sub("[^\d]", "", dado.get("cep"))
     for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
         if dado.get(campo):
             setattr(endereco_edit, campo, dado.get(campo))

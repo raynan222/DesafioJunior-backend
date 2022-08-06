@@ -16,24 +16,6 @@ class Usuario(db.Model):
 
     logins = db.relationship("Login", backref="usuario", lazy=True, viewonly=True)
 
-    @validator("nome", pre=True)
-    def is_str(cls, v):
-        if not isinstance(v, str):
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
-        return v
-
-    @validator("pis", pre=True)
-    def is_pis(cls, v):
-        if not PIS().validate(v):
-            raise ValueError(Globals.INVALID_PIS.format(type(v)))
-        return v
-
-    @validator("cpf", pre=True)
-    def is_cpf(cls, v):
-        if not CPF().validate(v):
-            raise ValueError(Globals.INVALID_CPF.format(type(v)))
-        return v
-
     def to_dict(self):
         return {"id": self.id,
                 "nome": self.nome,
@@ -49,4 +31,25 @@ class UsuarioModel(BaseModel):
     endereco_id: Optional[int]
 
     class Config:
-        orm_mode = True
+        orm_mode = True,
+
+    @validator("nome", pre=True)
+    def is_str(cls, v):
+        if not isinstance(v, str):
+            print("deu pau no nome")
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+        return v
+
+    @validator("pis", pre=True)
+    def is_pis(cls, v):
+        if not PIS().validate(v):
+            print("deu pau no pis")
+            raise ValueError(Globals.INVALID_PIS.format(type(v)))
+        return v
+
+    @validator("cpf", pre=True)
+    def is_cpf(cls, v):
+        if not CPF().validate(v):
+            print("deu pau no CPF")
+            raise ValueError(Globals.INVALID_CPF.format(type(v)))
+        return v

@@ -57,8 +57,8 @@ def usuarioCreation():
     dados = request.get_json()
 
     # checa se existe cadastro do pis ou cpf
-    cpf = re.sub("[^\\d+$]", "", dados["cpf"])
-    pis = re.sub("[^\\d+$]", "", dados["pis"])
+    cpf = re.sub("[^\d]", "", dados["cpf"])
+    pis = re.sub("[^\d]", "", dados["pis"])
     usuario = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
     if usuario is not None:
         return jsonify(
@@ -67,8 +67,8 @@ def usuarioCreation():
 
     usuario = Usuario(
         nome=dados["nome"],
-        pis=re.sub("[^\\d+$]", "", dados["pis"]),
-        cpf=re.sub("[^\\d+$]", "", dados["cpf"]),
+        pis=re.sub("[^\d]", "", dados["pis"]),
+        cpf=re.sub("[^\d]", "", dados["cpf"]),
         endereco_id=dados["endereco_id"]
     )
 
@@ -142,10 +142,10 @@ def usuarioView(query_id: int):
             {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
-    dict = usuario.to_dict()
-    dict["error"] = False
+    dic = usuario.to_dict()
+    dic["error"] = False
 
-    return jsonify(dict)
+    return jsonify(dic)
 
 
 @app.route("/usuario/list", methods=["GET"])
@@ -267,8 +267,8 @@ def usuarioUpdate(query_id: int):
         )
 
     # checa validade dos dados
-    cpf = dado.get("cpf")
-    pis = dado.get("pis")
+    cpf = re.sub("[^\d]", "", dado.get("cpf"))
+    pis = re.sub("[^\d]", "", dado.get("pis"))
     existente = Usuario.query.filter(
         or_(Usuario.cpf == cpf, Usuario.pis == pis)
     ).first()

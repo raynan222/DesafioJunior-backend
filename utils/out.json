@@ -212,7 +212,7 @@
                 }
             }
         },
-        "/endereco/list": {
+        "/municipio/list": {
             "get": {
                 "security": [
                     {
@@ -679,9 +679,6 @@
                                     "email": {
                                         "type": "string"
                                     },
-                                    "senha": {
-                                        "type": "string"
-                                    },
                                     "nome": {
                                         "type": "string"
                                     },
@@ -811,6 +808,74 @@
                                         "type": "integer"
                                     }
                                 }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ocorreu um erro",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login/update/senha": {
+            "put": {
+                "security": [
+                    {
+                        "jwt": []
+                    }
+                ],
+                "summary": "Edita um registro",
+                "requestBody": {
+                    "description": "Dados necess\u00e1rios para a edi\u00e7\u00e3o do registro",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "senha_antiga": {
+                                        "type": "string"
+                                    },
+                                    "senha_nova1": {
+                                        "type": "string"
+                                    },
+                                    "senha_nova2": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "senha_antiga",
+                                    "senha_nova1",
+                                    "senha_nova2"
+                                ]
                             }
                         }
                     }

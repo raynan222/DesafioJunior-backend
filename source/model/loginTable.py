@@ -17,25 +17,6 @@ class Login(db.Model):
 
     usuarios = db.relationship("Usuario", backref="login", lazy=True)
 
-    @validator("senha", pre=True)
-    def is_str(cls, v):
-        if not isinstance(v, str):
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
-        return v
-
-    @validator("usuario_id", "acesso_id", pre=True)
-    def is_int(cls, v):
-        if not isinstance(v, int):
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
-        return v
-
-    @validator("email", pre=True)
-    def is_email(cls, v):
-        reg = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-        if isinstance(re.fullmatch(reg, v), re.Match):
-            raise ValueError(Globals.INVALID_EMAIL.format(type(v)))
-        return v
-
     def to_dict(self):
         return {"email": self.email, "usuario_id": self.email, "acesso_id": self.acesso_id}
 
@@ -57,6 +38,7 @@ class Login(db.Model):
                         "bairro": self.usuario.endereco.bairro,
                         "complemento": self.usuario.endereco.complemento,
                         "municipio": self.usuario.endereco.municipio.nome,
+                        "municipio_id": self.usuario.endereco.municipio.id,
                         "estado": self.usuario.endereco.municipio.estado.nome,
                         "estado_sigla": self.usuario.endereco.municipio.estado.sigla,
                         "pais": self.usuario.endereco.municipio.estado.pais.nome,
@@ -77,3 +59,25 @@ class LoginModel(BaseModel):
 
     class Config:
         orm_mode = True
+
+    @validator("senha", pre=True)
+    def is_str(cls, v):
+        if not isinstance(v, str):
+            print("Deu pau na senha")
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+        return v
+
+    @validator("usuario_id", "acesso_id", pre=True)
+    def is_int(cls, v):
+        if not isinstance(v, int):
+            print("deu pau no usuario_id acesso_id")
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+        return v
+
+    @validator("email", pre=True)
+    def is_email(cls, v):
+        reg = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+        if re.fullmatch(reg, v) is None:
+            print("deu pau no EMAIL")
+            raise ValueError(Globals.INVALID_EMAIL.format(type(v)))
+        return v

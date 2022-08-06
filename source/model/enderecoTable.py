@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 import Globals
 from application.app import db
@@ -18,18 +19,6 @@ class Endereco(db.Model):
     )
     usuarios = db.relationship("Usuario", backref="endereco", lazy=True)
 
-    @validator("cep", "rua", "numero", "bairro", "complemento", pre=True)
-    def is_str(cls, v):
-        if not isinstance(v, str):
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
-        return v
-
-    @validator("municipio_id", pre=True)
-    def is_int(cls, v):
-        if not isinstance(v, int):
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
-        return v
-
     def to_dict(self):
         return {"id": self.id,
                 "cep": self.cep,
@@ -47,10 +36,9 @@ class Endereco(db.Model):
                 "bairro": self.bairro,
                 "complemento": self.complemento,
                 "municipio": self.municipio.nome,
-                "estado": self.municipio.estado,
+                "estado": self.municipio.estado.nome,
                 "estado_sigla": self.municipio.estado.sigla,
-                "pais": self.municipio.estado.pais}
-
+                "pais": self.municipio.estado.pais.nome}
 
 
 class EnderecoModel(BaseModel):
@@ -63,3 +51,26 @@ class EnderecoModel(BaseModel):
 
     class Config:
         orm_mode = True
+
+    @validator("cep", "rua", "numero", "bairro", "complemento", pre=True)
+    def is_str(cls, v):
+        if not isinstance(v, str):
+            print("pau na strings endereco")
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+        return v
+
+    @validator("municipio_id", pre=True)
+    def is_int(cls, v):
+        if not isinstance(v, int):
+            print("pau no municpio ID")
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+        return v
+
+    @validator("cep", pre=True)
+    def is_cep(cls, v):
+        cep = re.sub("[^\d]", "", v)
+        reg = "^\d{5}\-\d{3}"
+        if len(cep) != 8 or re.fullmatch(reg, v) is None:
+            print("pau na strings CEP")
+            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+        return v

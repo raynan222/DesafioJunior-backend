@@ -5,10 +5,11 @@ load_dotenv()
 
 DEBUG = True
 
-default = 'postgresql://postgres:postgres@localhost/web_app'
+default = 'postgresql+psycopg2://postgres:postgres@localhost/web_app'
 
 # db for deployment
-SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI', default)
+#SQLALCHEMY_DATABASE_URI = default #Para execução local
+SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_TEST_URI', default)
 # db for unit test
 SQLALCHEMY_TEST_DATABASE_URI = os.getenv('DATABASE_TEST_URI', None)
 

@@ -16,7 +16,7 @@ from source.model.acessoTable import AcessoModel
 
 from source.controller.enderecoController import (
     enderecoView,
-    enderecoList,
+    municipioList,
     enderecoUpdate,
 )
 from source.model.enderecoTable import EnderecoModel
@@ -29,6 +29,7 @@ from source.controller.loginController import (
     loginList,
     loginCompleteList,
     loginUpdate,
+    senhaUpdate,
     loginCompleteUpdate,
     loginDelete,
 )
@@ -77,7 +78,7 @@ with app.app_context():
         acessoView,
         acessoList,
         enderecoView,
-        enderecoList,
+        municipioList,
         enderecoUpdate,
         cadastroLogin,
         loginCreation,
@@ -87,6 +88,7 @@ with app.app_context():
         loginCompleteList,
         loginUpdate,
         loginCompleteUpdate,
+        senhaUpdate,
         loginDelete,
         usuarioCreation,
         usuarioView,

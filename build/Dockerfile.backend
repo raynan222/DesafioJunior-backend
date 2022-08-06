@@ -16,4 +16,6 @@ WORKDIR $APP_PATH
 RUN poetry config virtualenvs.create false
 RUN poetry install
 
-COPY . ./
+COPY . ../
+
+RUN ls
