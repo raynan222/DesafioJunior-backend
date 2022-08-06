@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  backend:
+    image: desafio-junior-backend:latest
+    build:
+      dockerfile: ./DesafioJunior-backend/build/backend.postgres.Dockerfile
+    env_file:
+      - ./DesafioJunior-backend/.env
+    depends_on:
+      - postgres
+    networks:
+        - backend
+        - frontend
+    command: python -m gunicorn --workers 3 --bind 0.0.0.0:5000 -m 007 application:app
+  frontend:
+    image: desafio-junior-frontend:latest
+    build:
+      dockerfile: ./DesafioJunior-backend/build/frontend.Dockerfile
+    env_file:
+      - ./DesafioJunior-backend/.env
+    depends_on:
+      - backend
+    networks:
+      - frontend
+    command: npm run start
+  postgres:
+    image: desafio-junior-postgres:latest
+    build:
+      dockerfile: ./DesafioJunior-backend/build/postgres.Dockerfile
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./DesafioJunior-backend/.env
+    environment:
+      POSTGRES_PASSWORD: $DB_PASSWORD
+      POSTGRES_USER: $DB_USER
+      POSTGRES_DB: $DB_NAME
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  frontend:
+    name: frontend
+  backend:
+    name: backend

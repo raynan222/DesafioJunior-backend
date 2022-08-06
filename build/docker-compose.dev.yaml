@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  backend:
+    env_file:
+      - ./DesafioJunior-backend/.env.dev
+    ports:
+      - "5000:5000"
+    command: python wsgi.py
+
+  frontend:
+    env_file:
+      - ./DesafioJunior-backend/.env.dev
+    ports:
+      - "3000:3000"
+
+  postgres:
+    ports:
+      - "5433:5432"
+    env_file:
+      - ./DesafioJunior-backend/.env.dev
