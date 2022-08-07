@@ -5,26 +5,31 @@ import pytest
 import sqlalchemy
 from Globals import TEST_LOGIN, TEST_USUARIO
 from application.app import app as _app, db as _db
-from config import BASE_DIR
+from config import BASE_DIR, SQLALCHEMY_DRIVER, SQLALCHEMY_USER, SQLALCHEMY_PWD, SQLALCHEMY_HOST, SQLALCHEMY_PORT, \
+    SQLALCHEMY_DB_TEST_NAME
 
 
+# def pytest_sessionstart():
+#     with _app.app_context():
+#         _app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://postgres:postgres@localhost:5432/web_app_test'
+#         _db.drop_all()
+#         _db.create_all()
+#
+#         session = _db.session()
+#
+#         sql_file = open(BASE_DIR + "/utils/db/start.sql", "r")
+#         escaped_sql = sqlalchemy.text(sql_file.read())
+#         session.execute(escaped_sql)
+#         session.flush()
+#
+#         session.commit()
+#
+#         session.close()
 
 def pytest_sessionstart():
     with _app.app_context():
-        _app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://postgres:postgres@localhost:5432/web_app_test'
-        _db.drop_all()
-        _db.create_all()
-
-        session = _db.session()
-
-        sql_file = open(BASE_DIR + "/utils/db/start.sql", "r")
-        escaped_sql = sqlalchemy.text(sql_file.read())
-        session.execute(escaped_sql)
-        session.flush()
-
-        session.commit()
-
-        session.close()
+        SQLALCHEMY_DATABASE_URI = f'{SQLALCHEMY_DRIVER}://{SQLALCHEMY_USER}:{SQLALCHEMY_PWD}@{SQLALCHEMY_HOST}{SQLALCHEMY_PORT}/{SQLALCHEMY_DB_TEST_NAME}'
+        _app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 
 
 def pytest_sessionfinish():

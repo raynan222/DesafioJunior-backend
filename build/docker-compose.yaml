@@ -10,9 +10,9 @@ services:
     depends_on:
       - postgres
     networks:
-        - backend
-        - frontend
-    command: python -m gunicorn --workers 3 --bind 0.0.0.0:5000 -m 007 application:app
+      - backend
+      - frontend
+    command: python -m gunicorn --workers 3 --bind $BACKEND_HOST:5000 -m 007 application:app
   frontend:
     image: desafio-junior-frontend:latest
     build:

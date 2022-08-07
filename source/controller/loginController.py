@@ -859,3 +859,70 @@ def loginDelete(query_id: int):
         return jsonify(
             {"message": Globals.REGISTER_DELETE_INTEGRITY_ERROR, "error": True}
         )
+
+@app.route("/login/delete/complete/<int:query_id>", methods=["DELETE"])
+@jwt_required
+def loginDeleteComplete(query_id: int):
+    """Remove registro por ID
+    ---
+    delete:
+      security:
+        - jwt: []
+      summary: Remove o registro do banco se ele existir
+      parameters:
+        - in: path
+          name: query_id
+          schema:
+            type: integer
+          required: true
+          description: Identificação única do registro
+      responses:
+        200:
+            description: "Sucesso"
+            content:
+                application/json:
+                    schema:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+        400:
+            description: "Ocorreu um erro"
+            content:
+                application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
+    login_delete = Login.query.get(query_id)
+
+    if not login_delete:
+        return jsonify(
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
+        )
+
+    login_atual = Login.query.get(get_jwt_identity())
+
+    if login_atual.acesso.nome != "administracao" and login_atual.id != login.id:
+        return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
+
+    endereco_delete = Endereco.query.get(login_atual.usuario.endereco_id)
+    usuario_delete = Usuario.query.get(login_atual.usuario_id)
+    db.session.delete(endereco_delete)
+    db.session.delete(usuario_delete)
+    db.session.delete(login_delete)
+
+    try:
+        db.session.commit()
+        return jsonify(
+            {
+                "message": Globals.REGISTER_SUCCESS_DELETED.format("Usuário"),
+                "error": False,
+            }
+        )
+    except exc.IntegrityError:
+        return jsonify(
+            {"message": Globals.REGISTER_DELETE_INTEGRITY_ERROR, "error": True}
+        )
