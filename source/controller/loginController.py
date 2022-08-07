@@ -130,7 +130,6 @@ def cadastroLogin():
             usuario_id=usuario.id,
             acesso_id=2,
         )
-
         db.session.add(login)
 
         db.session.commit()

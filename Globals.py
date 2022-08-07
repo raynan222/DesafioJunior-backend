@@ -20,10 +20,12 @@ AUTH_USER_SUCCESS = "Login realizado com sucesso."
 PASSWORDS_DONT_MATCH = "As senhas não coincidem."
 AUTH_USER_DENIED = "O usuário não possui permissão para acessar a URL solicitada."
 
-INVALID_TYPE = "O tipo {} é invalido para esse campo"
-INVALID_CPF = "O CPF({}) é invalido."
-INVALID_PIS = "O PIS({}) é invalido."
-INVALID_EMAIL = "O email({}) é invalido."
+INVALID_TYPE = "O valor {} é invalido para o campo."
+INVALID_CITY = "O municipio selecionado é invalido."
+INVALID_CPF = "O CPF é invalido."
+INVALID_CEP = "O CEP é invalido."
+INVALID_PIS = "O PIS é invalido."
+INVALID_EMAIL = "O email é invalido."
 
 USER_INVALID_DELETE = "Não é permitido deletar esse usuário."
 

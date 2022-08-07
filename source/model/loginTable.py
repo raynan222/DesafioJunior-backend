@@ -64,14 +64,14 @@ class LoginModel(BaseModel):
     def is_str(cls, v):
         if not isinstance(v, str):
             print("Deu pau na senha")
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_TYPE.format(v))
         return v
 
     @validator("usuario_id", "acesso_id", pre=True)
     def is_int(cls, v):
         if not isinstance(v, int):
             print("deu pau no usuario_id acesso_id")
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_TYPE.format(v))
         return v
 
     @validator("email", pre=True)
@@ -79,5 +79,5 @@ class LoginModel(BaseModel):
         reg = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
         if re.fullmatch(reg, v) is None:
             print("deu pau no EMAIL")
-            raise ValueError(Globals.INVALID_EMAIL.format(type(v)))
+            raise ValueError(Globals.INVALID_EMAIL)
         return v

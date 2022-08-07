@@ -56,14 +56,14 @@ class EnderecoModel(BaseModel):
     def is_str(cls, v):
         if not isinstance(v, str):
             print("pau na strings endereco")
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_TYPE.type(v))
         return v
 
     @validator("municipio_id", pre=True)
     def is_int(cls, v):
         if not isinstance(v, int):
             print("pau no municpio ID")
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_CITY)
         return v
 
     @validator("cep", pre=True)
@@ -72,5 +72,5 @@ class EnderecoModel(BaseModel):
         reg = "^\d{5}\-\d{3}"
         if len(cep) != 8 or re.fullmatch(reg, v) is None:
             print("pau na strings CEP")
-            raise ValueError(Globals.INVALID_TYPE.format(type(v)))
+            raise ValueError(Globals.INVALID_CEP)
         return v
