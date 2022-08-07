@@ -16,6 +16,7 @@ def enderecoView(query_id: int):
     """Busca registro por ID
     ---
     get:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Busca o registro do banco se ele existir
@@ -62,6 +63,7 @@ def enderecoList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco
@@ -106,6 +108,7 @@ def municipioList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco
@@ -152,6 +155,7 @@ def municipioView(query_id: int):
     """Busca registro por ID
     ---
     get:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Busca o registro do banco se ele existir
@@ -198,6 +202,7 @@ def estadoList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco
@@ -243,6 +248,7 @@ def paisList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco
@@ -291,6 +297,7 @@ def enderecoUpdate(query_id: int):
     """Adiciona registro
     ---
     put:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Edita um registro

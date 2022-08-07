@@ -11,6 +11,7 @@ def acessoView(query_id: int):
     """Busca registro por ID
     ---
     get:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Busca o registro do banco se ele existir
@@ -58,6 +59,7 @@ def acessoList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco

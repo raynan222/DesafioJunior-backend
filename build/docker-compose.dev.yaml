@@ -6,7 +6,7 @@ services:
       - ./DesafioJunior-backend/.env.dev
     ports:
       - "5000:5000"
-    command: python -m gunicorn --workers 3 --bind backend:5000 -m 007 application:app
+    command: python -m gunicorn --workers 1 --bind backend:5000 -m 007 --reload --log-level 'debug' application:app
 
   frontend:
     env_file:

@@ -71,7 +71,6 @@ with app.app_context():
     ]
     for model in models:
         spec.components.schema(model["title"], model)
-        spec.tag(dict(name="Rotas", description="Rotas"))
 
     paths = [
         login,
@@ -99,6 +98,6 @@ with app.app_context():
     for path in paths:
         spec.path(view=path)
 
-    f = open("utils/out.json", "w")
+    f = open("utils/swagger.json", "w")
     f.write(json.dumps(spec.to_dict(), indent=4))
     f.close()

@@ -18,6 +18,7 @@ def usuarioCreation():
     """Adiciona registro
     ---
     put:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Adiciona um registro
@@ -96,6 +97,7 @@ def usuarioView(query_id: int):
     """Busca registro por ID
     ---
     get:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Busca o registro do banco se ele existir
@@ -154,6 +156,7 @@ def usuarioList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco
@@ -209,6 +212,7 @@ def usuarioUpdate(query_id: int):
     """Adiciona registro
     ---
     put:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Edita um registro
@@ -302,6 +306,7 @@ def usuarioDelete(query_id: int):
     """Remove registro por ID
     ---
     delete:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Remove o registro do banco se ele existir

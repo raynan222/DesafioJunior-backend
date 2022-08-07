@@ -391,7 +391,7 @@ cli = ["click (>=5.0)"]
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -436,6 +436,18 @@ pymysql = ["pymysql (<1)", "pymysql"]
 sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
+name = "swagger-ui-py"
+version = "22.7.13"
+description = "Swagger UI for Python web framework, such as Tornado, Flask, Quart, Sanic and Falcon."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+jinja2 = ">=2.0"
+PyYaml = ">=5.0"
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -474,7 +486,7 @@ dev = ["sphinx-issues", "pallets-sphinx-themes", "sphinx", "tox", "coverage", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "3.9.13"
-content-hash = "81aa62d66cf0631b6fff9a481a20f6ecdc9d9d257922c806acbbbe11bed8198d"
+content-hash = "bc661804796f2618cf54dc7dd3200fc2c3cba988b115cfbddf0bffeeb818daa1"
 
 [metadata.files]
 alembic = [
@@ -880,6 +892,10 @@ sqlalchemy = [
     {file = "SQLAlchemy-1.4.39-cp39-cp39-win32.whl", hash = "sha256:d1f665e50592caf4cad3caed3ed86f93227bffe0680218ccbb293bd5a6734ca8"},
     {file = "SQLAlchemy-1.4.39-cp39-cp39-win_amd64.whl", hash = "sha256:8b773c9974c272aae0fa7e95b576d98d17ee65f69d8644f9b6ffc90ee96b4d19"},
     {file = "SQLAlchemy-1.4.39.tar.gz", hash = "sha256:8194896038753b46b08a0b0ae89a5d80c897fb601dd51e243ed5720f1f155d27"},
+]
+swagger-ui-py = [
+    {file = "swagger-ui-py-22.7.13.tar.gz", hash = "sha256:02df5206a6b3ea5cc1b29c0ea4010e4427118e529fbe8a22f442ba24bec496bc"},
+    {file = "swagger_ui_py-22.7.13-py3-none-any.whl", hash = "sha256:0214dd8da6fdf43a1c4425dec453789b431b6c68cb9673496c8bc9721b4ba493"},
 ]
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},

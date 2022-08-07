@@ -53,7 +53,7 @@ def insert_acessos():
     from application.app import db
     from source.model import Acesso
 
-    acessos = ["administração", "usuario", "visitante"]
+    acessos = ["administracao", "usuario", "visitante"]
     for nome in acessos:
         acesso = Acesso()
         acesso.nome = nome

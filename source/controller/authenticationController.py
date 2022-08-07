@@ -23,6 +23,7 @@ def login():
     """Realiza o login
     ---
     post:
+        tags: [Rotas]
         summary: Realiza o login retorna JWT
         requestBody:
             description: Dados necessários para o login
@@ -97,6 +98,7 @@ def login():
                     "pis": usuario.pis,
                 },
                 "acesso": {"id": login.acesso.id, "name": login.acesso.nome},
+                "error": False,
             }
         ),
         200,

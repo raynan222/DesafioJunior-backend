@@ -20,6 +20,7 @@ def cadastroLogin():
     """Adiciona registro
     ---
     post:
+        tags: [Rotas]
         summary: Adiciona um registro
         requestBody:
             description: Dados necessários para a criação do registro
@@ -153,6 +154,7 @@ def loginCreation():
     """Adiciona registro
     ---
     put:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Adiciona um registro
@@ -227,6 +229,7 @@ def loginView(query_id: int):
     """Busca registro por ID
     ---
     get:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Busca o registro do banco se ele existir
@@ -287,6 +290,7 @@ def loginCompleteView(query_id: int):
     """Busca registro por ID
     ---
     get:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Busca o registros do banco se ele existir
@@ -327,12 +331,7 @@ def loginCompleteView(query_id: int):
     if login_atual.id != query_id and login_atual.acesso.nome != "administracao":
         return jsonify({"message": Globals.AUTH_USER_DENIED, "error": True})
 
-    return (
-        jsonify(
-            query.to_dict_complete()
-        ),
-        200,
-    )
+    return jsonify({"login": query.to_dict_complete(), "error": False})
 
 
 @app.route("/login/list", methods=["GET"])
@@ -341,6 +340,7 @@ def loginList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco
@@ -394,6 +394,7 @@ def loginCompleteList():
     """Busca lista de registros
     ---
     get:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Busca lista de registro existentes no banco
@@ -463,6 +464,7 @@ def loginUpdate(query_id: int):
     """Adiciona registro
     ---
     put:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Edita um registro
@@ -570,6 +572,7 @@ def senhaUpdate():
     """Adiciona registro
     ---
     put:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Edita um registro
@@ -656,6 +659,7 @@ def loginCompleteUpdate(query_id: int):
     """Adiciona registro
     ---
     put:
+        tags: [Rotas]
         security:
             - jwt: []
         summary: Edita um registro
@@ -803,6 +807,7 @@ def loginDelete(query_id: int):
     """Remove registro por ID
     ---
     delete:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Remove o registro do banco se ele existir
@@ -866,6 +871,7 @@ def loginDeleteComplete(query_id: int):
     """Remove registro por ID
     ---
     delete:
+      tags: [Rotas]
       security:
         - jwt: []
       summary: Remove o registro do banco se ele existir

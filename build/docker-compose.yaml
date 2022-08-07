@@ -11,8 +11,8 @@ services:
       - postgres
     networks:
       - backend
-      - frontend
-    command: python -m gunicorn --workers 3 --bind $BACKEND_HOST:5000 -m 007 application:app
+      - postgres
+    command: python -m gunicorn --workers 3 --bind backend:5000 -m 007 application:app
   frontend:
     image: desafio-junior-frontend:latest
     build:
@@ -22,7 +22,7 @@ services:
     depends_on:
       - backend
     networks:
-      - frontend
+      - backend
     command: npm run start
   postgres:
     image: desafio-junior-postgres:latest
@@ -37,13 +37,13 @@ services:
       POSTGRES_USER: $DB_USER
       POSTGRES_DB: $DB_NAME
     networks:
-      - backend
+      - postgres
 
 volumes:
   postgres_data:
 
 networks:
-  frontend:
-    name: frontend
   backend:
     name: backend
+  postgres:
+    name: postgres

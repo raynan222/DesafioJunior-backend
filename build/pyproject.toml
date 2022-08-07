@@ -26,6 +26,7 @@ validate-docbr = "*"
 Flask-SQLAlchemy = "*"
 Flask-Migrate = "2.7.0"
 Flask_jwt_extended = "*"
+swagger-ui-py = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
