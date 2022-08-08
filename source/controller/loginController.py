@@ -86,7 +86,7 @@ def cadastroLogin():
 
     lista_campos = Login._campos + Usuario._campos + Endereco._campos
     for campo in lista_campos:
-        if campo is not "complemento" and dado.get(campo) is None:
+        if campo is not "complemento" and dado.get(campo) is None and len(dado.get(campo))>0:
             return jsonify({
                     "message": Globals.EMPTY_FIELD.format(campo.replace("_id","")),
                     "error": True,
@@ -680,8 +680,6 @@ def loginCompleteUpdate(query_id: int):
                   properties:
                     email:
                       type: string
-                    senha:
-                      type: string
                     acesso_id:
                       type: integer
                     nome:
@@ -741,13 +739,8 @@ def loginCompleteUpdate(query_id: int):
     login_edit = Login.query.get(query_id)
     if not login_edit:
         return jsonify(
-            {"message": Globals.REGISTER_NOT_FOUND.format("login_id"), "error": True}
+            {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
-
-    # mudança de senha, somente realizado pelo proprio
-    if login.id == login_edit.id and dado.get("senha") is not None:
-        senha_hashed = generate_password_hash(dado.get("senha"), method="sha256")
-        login.senha = senha_hashed
 
     for campo in ["email", "acesso_id"]:
         if dado.get(campo) is not None:
@@ -913,7 +906,7 @@ def loginDeleteComplete(query_id: int):
 
     login_atual = Login.query.get(get_jwt_identity())
 
-    if login_atual.acesso.id != 1 and login_atual.id != login_delete.id:
+    if login_atual.acesso.id != 1 or login_atual.id != login_delete.id:
         return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
 
     endereco_delete = Endereco.query.get(login_delete.usuario.endereco_id)
