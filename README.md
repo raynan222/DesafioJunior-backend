@@ -34,6 +34,8 @@ Para executar o docker é necessário respeita a hierarquia de pastas a seguir
 Na pasta DesafioJunior-backend execute o comando:
 > docker compose --project-directory ../ --env-file .env.dev -f build/docker-compose.yaml -f build/docker-compose.dev.yaml up --force-recreate --build
 
+A aplicação fica acessivel em localhost:3000/
+
 ## Configuração do banco
 
 Para gerar as tabelas deve ser executado os seguintes comandos:
