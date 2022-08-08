@@ -68,6 +68,7 @@ def insert_adm():
     from application.app import db
     from source.model import Endereco, Usuario, Login
     from werkzeug.security import generate_password_hash
+    from random import randint
 
     endereco = {
         "cep": "60862101",
@@ -75,7 +76,7 @@ def insert_adm():
         "numero": "122",
         "bairro": "Jd Castelinho",
         "complemento": "Não há",
-        "municipio_id": 1,
+        "municipio_id": randint(0, 5596),
     }
     endereco_insert = Endereco()
     for campo in endereco.keys():

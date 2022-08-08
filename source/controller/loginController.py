@@ -86,7 +86,7 @@ def cadastroLogin():
 
     lista_campos = Login._campos + Usuario._campos + Endereco._campos
     for campo in lista_campos:
-        if dado.get(campo) is None:
+        if campo is not "complemento" and dado.get(campo) is None:
             return jsonify({
                     "message": Globals.EMPTY_FIELD.format(campo.replace("_id","")),
                     "error": True,
