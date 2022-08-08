@@ -16,12 +16,16 @@ class Usuario(db.Model):
 
     logins = db.relationship("Login", backref="usuario", lazy=True, viewonly=True)
 
+    _campos = ["nome", "pis", "cpf"]
+
     def to_dict(self):
-        return {"id": self.id,
-                "nome": self.nome,
-                "pis": self.pis,
-                "cpf": self.cpf,
-                "endereco_id": self.endereco_id}
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "pis": self.pis,
+            "cpf": self.cpf,
+            "endereco_id": self.endereco_id,
+        }
 
 
 class UsuarioModel(BaseModel):
@@ -31,25 +35,22 @@ class UsuarioModel(BaseModel):
     endereco_id: Optional[int]
 
     class Config:
-        orm_mode = True,
+        orm_mode = (True,)
 
     @validator("nome", pre=True)
     def is_str(cls, v):
         if not isinstance(v, str):
-            print("deu pau no nome")
             raise ValueError(Globals.INVALID_TYPE.format(type(v)))
         return v
 
     @validator("pis", pre=True)
     def is_pis(cls, v):
         if not PIS().validate(v):
-            print("deu pau no pis")
             raise ValueError(Globals.INVALID_PIS.format(type(v)))
         return v
 
     @validator("cpf", pre=True)
     def is_cpf(cls, v):
         if not CPF().validate(v):
-            print("deu pau no CPF")
             raise ValueError(Globals.INVALID_CPF.format(type(v)))
         return v

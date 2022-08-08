@@ -64,22 +64,23 @@ def login():
     email = dado.get("email/cpf/pis").lower()
     cpf_ou_pis = re.sub("[^\\d+$]", "", email)
 
-    login = db.session.query(Login).join(Usuario, Usuario.id == Login.usuario_id).filter(
+    login = (
+        db.session.query(Login)
+        .join(Usuario, Usuario.id == Login.usuario_id)
+        .filter(
             or_(
                 Login.email == email,
                 Usuario.cpf == cpf_ou_pis,
                 Usuario.pis == cpf_ou_pis,
             )
-        ).first()
+        )
+        .first()
+    )
 
     if not login:
-        return jsonify(
-            {"message": Globals.AUTH_USER_NOT_FOUND, "error": True}
-        )
+        return jsonify({"message": Globals.AUTH_USER_NOT_FOUND, "error": True})
     elif not check_password_hash(login.senha, str(dado.get("senha"))):
-        return jsonify(
-            {"message": Globals.AUTH_USER_PASS_ERROR, "error": True}
-        )
+        return jsonify({"message": Globals.AUTH_USER_PASS_ERROR, "error": True})
 
     usuario = Usuario.query.get(login.usuario_id)
     return (
@@ -127,8 +128,6 @@ def view():
         )
 
     return (
-        jsonify(
-            login.to_dict_complete()
-        ),
+        jsonify(login.to_dict_complete()),
         200,
     )

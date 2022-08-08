@@ -2,7 +2,6 @@ import json
 from Globals import TEST_USUARIO
 
 
-
 def test_list_usuarios(app, token_admin):
     with app.app_context():
         client = app.test_client()
@@ -13,6 +12,7 @@ def test_list_usuarios(app, token_admin):
         assert not output["error"]
         assert response.status_code == 200
 
+
 def test_add_usuario(app, token_admin):
     with app.app_context():
         client = app.test_client()
@@ -22,6 +22,7 @@ def test_add_usuario(app, token_admin):
         output = json.loads(response.get_data())
         assert not output["error"]
         assert response.status_code == 200
+
 
 def test_view_usuario(app, token_admin):
     with app.app_context():
@@ -43,8 +44,8 @@ def test_view_usuario(app, token_admin):
         assert not output["error"]
         assert response.status_code == 200
 
-def test_delete_usuario(app, create_login, token_admin):
 
+def test_delete_usuario(app, create_login, token_admin):
 
     with app.app_context():
 

@@ -84,6 +84,13 @@ def cadastroLogin():
     """
     dado = request.get_json()
 
+    lista_campos = Login._campos + Usuario._campos + Endereco._campos
+    for campo in lista_campos:
+        if dado.get(campo) is None:
+            return jsonify({
+                    "message": Globals.EMPTY_FIELD.format(campo.replace("_id","")),
+                    "error": True,
+                })
     # checa a existencia de um login ja cadastrado com os dados informados
     if Login.query.filter_by(email=dado.get("email").lower()).first():
         return jsonify(
@@ -107,31 +114,32 @@ def cadastroLogin():
     # Cadastra o endereço
     endereco = Endereco()
     dado["cep"] = re.sub("[^\d]", "", dado.get("cep"))
-    for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
+    for campo in Endereco._campos:
         if dado.get(campo):
             setattr(endereco, campo, dado.get(campo))
     db.session.add(endereco)
     db.session.flush()
     # Cadastra o usuario
     usuario = Usuario()
-    for campo in ["nome", "pis", "cpf"]:
+    for campo in Usuario._campos:
         if dado.get(campo):
             setattr(usuario, campo, dado.get(campo))
     # Adiciona o id do endereço
     usuario.endereco_id = endereco.id
     db.session.add(usuario)
 
+    db.session.flush()
+
+    # Adiciona os dados de login
+    login = Login(
+        email=email,
+        senha=senha_hashed,
+        usuario_id=usuario.id,
+        acesso_id=2,
+    )
+    db.session.add(login)
+
     try:
-        db.session.flush()
-
-        login = Login(
-            email=email,
-            senha=senha_hashed,
-            usuario_id=usuario.id,
-            acesso_id=2,
-        )
-        db.session.add(login)
-
         db.session.commit()
         return jsonify(
             {
@@ -187,7 +195,7 @@ def loginCreation():
 
     login = Login.query.get(get_jwt_identity())
     # Caso o login nao seja adminitrador ele nao deve conseguir criar um login
-    if login.acesso.nome != "administracao":
+    if login.acesso.id != 1:
         return jsonify({"message": Globals.AUTH_USER_DENIED, "error": True})
 
     # Checa a existencia de email ja cadastrado
@@ -266,7 +274,7 @@ def loginView(query_id: int):
                 "error": True,
             }
         )
-    if login.acesso.nome != "administracao":
+    if login.acesso.id != 1:
         query_id = login.id
 
     # Busca o login a ser visto no banco
@@ -327,7 +335,7 @@ def loginCompleteView(query_id: int):
         )
 
     query = Login.query.get(query_id)
-    if login_atual.id != query_id and login_atual.acesso.nome != "administracao":
+    if login_atual.acesso.id != 1 and login_atual.id != query_id:
         return jsonify({"message": Globals.AUTH_USER_DENIED, "error": True})
 
     return jsonify({"login": query.to_dict_complete(), "error": False})
@@ -430,7 +438,7 @@ def loginCompleteList():
                 "error": True,
             }
         )
-    if login_atual.acesso.nome != "administracao":
+    if login_atual.acesso.id != 1:
         return jsonify({"message": Globals.AUTH_USER_DENIED, "error": True})
 
     page = request.args.get("page", 1, type=int)
@@ -533,7 +541,7 @@ def loginUpdate(query_id: int):
                 "error": True,
             }
         )
-    if login.acesso.nome != "administracao":
+    if login.acesso.id != 1:
         query_id = login.id
         del dado["acesso_id"]
 
@@ -619,16 +627,10 @@ def senhaUpdate():
     login = Login.query.get(get_jwt_identity())
 
     if dado.get("senha_nova1") != dado.get("senha_nova2"):
-        return jsonify(
-            {"message": Globals.PASSWORDS_DONT_MATCH,
-             "error": True}
-        )
+        return jsonify({"message": Globals.PASSWORDS_DONT_MATCH, "error": True})
 
     elif not check_password_hash(login.senha, str(dado.get("senha_antiga"))):
-        return jsonify(
-            {"message": Globals.AUTH_USER_PASS_ERROR,
-             "error": True}
-        )
+        return jsonify({"message": Globals.AUTH_USER_PASS_ERROR, "error": True})
 
     # Realiza a mudança na senha
     senha_hashed = generate_password_hash(dado.get("senha_nova1"), method="sha256")
@@ -637,14 +639,15 @@ def senhaUpdate():
     try:
         db.session.commit()
         return jsonify(
-            {"message": Globals.REGISTER_SUCCESS_UPDATED.format("login"),
-             "error": False}
+            {
+                "message": Globals.REGISTER_SUCCESS_UPDATED.format("login"),
+                "error": False,
+            }
         )
     except exc.IntegrityError:
         db.session.rollback()
         return jsonify(
-            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR,
-             "error": True}
+            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
         )
 
 
@@ -732,7 +735,7 @@ def loginCompleteUpdate(query_id: int):
                 "error": True,
             }
         )
-    if login.acesso.nome != "administracao":
+    if login.acesso.id != 1:
         query_id = login.id
         del dado["acesso_id"]
 
@@ -745,14 +748,14 @@ def loginCompleteUpdate(query_id: int):
 
     # mudança de senha, somente realizado pelo proprio
     if login.id == login_edit.id and dado.get("senha") is not None:
-            senha_hashed = generate_password_hash(dado.get("senha"), method="sha256")
-            login.senha = senha_hashed
+        senha_hashed = generate_password_hash(dado.get("senha"), method="sha256")
+        login.senha = senha_hashed
 
     for campo in ["email", "acesso_id"]:
         if dado.get(campo) is not None:
             setattr(login_edit, campo, dado.get(campo))
 
-    #atualiza usuario
+    # atualiza usuario
     usuario_edit = Usuario.query.get(login_edit.usuario_id)
 
     cpf = str()
@@ -765,7 +768,9 @@ def loginCompleteUpdate(query_id: int):
         dado["pis"] = re.sub("[^\d]", "", dado.get("pis"))
         pis = dado["pis"]
 
-    existing_data = Usuario.query.filter(or_(Usuario.cpf == cpf, Usuario.pis == pis)).first()
+    existing_data = Usuario.query.filter(
+        or_(Usuario.cpf == cpf, Usuario.pis == pis)
+    ).first()
     if existing_data is not None:
         return jsonify(
             {"message": Globals.ALREADY_EXISTS.format("CPF/PIS"), "error": True}
@@ -775,14 +780,13 @@ def loginCompleteUpdate(query_id: int):
         if dado.get(campo):
             setattr(usuario_edit, campo, dado.get(campo))
 
-    #Atualiza endereco
+    # Atualiza endereco
     endereco_edit = Endereco.query.get(login_edit.usuario.endereco_id)
-    if dado["cep"] is not None:
+    if dado.get("cep") is not None:
         dado["cep"] = re.sub("[^\d]", "", dado.get("cep"))
     for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
         if dado.get(campo):
             setattr(endereco_edit, campo, dado.get(campo))
-
 
     try:
         db.session.commit()
@@ -837,19 +841,19 @@ def loginDelete(query_id: int):
                         error:
                           type: string
     """
-    login = Login.query.get(query_id)
+    login_delete = Login.query.get(query_id)
 
-    if not login:
+    if not login_delete:
         return jsonify(
             {"message": Globals.REGISTER_NOT_FOUND.format(query_id), "error": True}
         )
 
     login_atual = Login.query.get(get_jwt_identity())
 
-    if login_atual.acesso.nome != "administracao" and login_atual.id != login.id:
+    if login_atual.acesso.id != 1 or login_atual.id != login_delete.id:
         return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
 
-    db.session.delete(login)
+    db.session.delete(login_delete)
 
     try:
         db.session.commit()
@@ -863,6 +867,7 @@ def loginDelete(query_id: int):
         return jsonify(
             {"message": Globals.REGISTER_DELETE_INTEGRITY_ERROR, "error": True}
         )
+
 
 @app.route("/login/delete/complete/<int:query_id>", methods=["DELETE"])
 @jwt_required
@@ -910,11 +915,11 @@ def loginDeleteComplete(query_id: int):
 
     login_atual = Login.query.get(get_jwt_identity())
 
-    if login_atual.acesso.nome != "administracao" and login_atual.id != login.id:
+    if login_atual.acesso.id != 1 and login_atual.id != login_delete.id:
         return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
 
-    endereco_delete = Endereco.query.get(login_atual.usuario.endereco_id)
-    usuario_delete = Usuario.query.get(login_atual.usuario_id)
+    endereco_delete = Endereco.query.get(login_delete.usuario.endereco_id)
+    usuario_delete = Usuario.query.get(login_delete.usuario_id)
     db.session.delete(endereco_delete)
     db.session.delete(usuario_delete)
     db.session.delete(login_delete)

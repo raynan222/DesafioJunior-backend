@@ -12,6 +12,7 @@ def test_list_logins(app, token_admin):
         assert not output["error"]
         assert response.status_code == 200
 
+
 def test_add_login(app, token_admin):
     with app.app_context():
         client = app.test_client()
@@ -21,6 +22,7 @@ def test_add_login(app, token_admin):
         output = json.loads(response.get_data())
         assert not output["error"]
         assert response.status_code == 200
+
 
 def test_view_login(app, token_admin, create_login):
     with app.app_context():
@@ -45,7 +47,6 @@ def test_delete_login(app, token_admin, create_login):
         output = json.loads(response.get_data())
         assert not output["error"]
         assert response.status_code == 200
-
 
         url = "/login/view/" + str(id)
         response = client.get(url, headers=token_admin)

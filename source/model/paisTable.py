@@ -11,7 +11,7 @@ class Pais(db.Model):
     estados = db.relationship("Estado", backref="pais", lazy=True)
 
     def to_dict(self):
-        return{"id": self.id, "nome": self.nome}
+        return {"id": self.id, "nome": self.nome}
 
 
 class PaisModel(BaseModel):

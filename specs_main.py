@@ -1,26 +1,21 @@
+import json
 from apispec import APISpec
 from apispec_webframeworks.flask import FlaskPlugin
-import json
-
 from application.app import app
-
 from source.controller.authenticationController import (
     login,
 )
-
 from source.controller.acessoController import (
     acessoView,
     acessoList,
 )
 from source.model.acessoTable import AcessoModel
-
 from source.controller.enderecoController import (
     enderecoView,
     municipioList,
     enderecoUpdate,
 )
 from source.model.enderecoTable import EnderecoModel
-
 from source.controller.loginController import (
     cadastroLogin,
     loginCreation,
@@ -34,7 +29,6 @@ from source.controller.loginController import (
     loginDelete,
 )
 from source.model.loginTable import LoginModel
-
 from source.controller.usuarioController import (
     usuarioCreation,
     usuarioView,
@@ -44,6 +38,8 @@ from source.controller.usuarioController import (
 )
 from source.model.usuarioTable import UsuarioModel
 
+#Script utilizado para gera arquivo de documentação no swagger
+#Pode ser acesso em http://localhost:5000/api#/
 spec = APISpec(
     title="Backend",
     version="1.0.0",

@@ -13,7 +13,12 @@ class Estado(db.Model):
     municipios = db.relationship("Municipio", backref="estado", lazy=True)
 
     def to_dict(self):
-        return {"id": self.id, "nome": self.nome, "sigla": self.sigla, "pais_id": self.pais_id}
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "sigla": self.sigla,
+            "pais_id": self.pais_id,
+        }
 
 
 class EstadoModel(BaseModel):

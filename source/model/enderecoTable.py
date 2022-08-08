@@ -19,26 +19,32 @@ class Endereco(db.Model):
     )
     usuarios = db.relationship("Usuario", backref="endereco", lazy=True)
 
+    _campos = ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]
+
     def to_dict(self):
-        return {"id": self.id,
-                "cep": self.cep,
-                "rua": self.rua,
-                "numero": self.numero,
-                "bairro": self.bairro,
-                "complemento": self.complemento,
-                "municipio_id": self.municipio_id}
+        return {
+            "id": self.id,
+            "cep": self.cep,
+            "rua": self.rua,
+            "numero": self.numero,
+            "bairro": self.bairro,
+            "complemento": self.complemento,
+            "municipio_id": self.municipio_id,
+        }
 
     def to_dict_complete(self):
-        return {"id": self.id,
-                "cep": self.cep,
-                "rua": self.rua,
-                "numero": self.numero,
-                "bairro": self.bairro,
-                "complemento": self.complemento,
-                "municipio": self.municipio.nome,
-                "estado": self.municipio.estado.nome,
-                "estado_sigla": self.municipio.estado.sigla,
-                "pais": self.municipio.estado.pais.nome}
+        return {
+            "id": self.id,
+            "cep": self.cep,
+            "rua": self.rua,
+            "numero": self.numero,
+            "bairro": self.bairro,
+            "complemento": self.complemento,
+            "municipio": self.municipio.nome,
+            "estado": self.municipio.estado.nome,
+            "estado_sigla": self.municipio.estado.sigla,
+            "pais": self.municipio.estado.pais.nome,
+        }
 
 
 class EnderecoModel(BaseModel):
@@ -55,14 +61,12 @@ class EnderecoModel(BaseModel):
     @validator("cep", "rua", "numero", "bairro", "complemento", pre=True)
     def is_str(cls, v):
         if not isinstance(v, str):
-            print("pau na strings endereco")
             raise ValueError(Globals.INVALID_TYPE.type(v))
         return v
 
     @validator("municipio_id", pre=True)
     def is_int(cls, v):
         if not isinstance(v, int):
-            print("pau no municpio ID")
             raise ValueError(Globals.INVALID_CITY)
         return v
 
@@ -71,6 +75,5 @@ class EnderecoModel(BaseModel):
         cep = re.sub("[^\d]", "", v)
         reg = "^\d{5}\-\d{3}"
         if len(cep) != 8 or re.fullmatch(reg, v) is None:
-            print("pau na strings CEP")
             raise ValueError(Globals.INVALID_CEP)
         return v

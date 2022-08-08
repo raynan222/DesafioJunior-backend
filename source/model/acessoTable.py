@@ -11,8 +11,7 @@ class Acesso(db.Model):
     logins = db.relationship("Login", backref="acesso", lazy=True)
 
     def to_dict(self):
-        return{"id": self.id,
-               "nome": self.nome}
+        return {"id": self.id, "nome": self.nome}
 
 
 class AcessoModel(BaseModel):

@@ -103,6 +103,7 @@ def enderecoList():
     dados["error"] = False
     return jsonify(dados)
 
+
 @app.route("/municipio/list", methods=["GET"])
 def municipioList():
     """Busca lista de registros
@@ -140,7 +141,6 @@ def municipioList():
     if nome_filter is not None:
         query = query.filter(Municipio.nome.ilike("{}%%".format(nome_filter)))
 
-
     municipios, dados = paginate(query, page, rows_per_page)
 
     for municipio in municipios:
@@ -149,6 +149,7 @@ def municipioList():
         dados["itens"].append(dado)
     dados["error"] = False
     return jsonify(dados)
+
 
 @app.route("/municipio/view/<int:query_id>", methods=["GET"])
 def municipioView(query_id: int):
@@ -196,6 +197,7 @@ def municipioView(query_id: int):
 
     return jsonify(dado)
 
+
 @app.route("/estado/list", methods=["GET"])
 @jwt_required
 def estadoList():
@@ -242,6 +244,7 @@ def estadoList():
 
     return jsonify(dados)
 
+
 @app.route("/pais/list", methods=["GET"])
 @jwt_required
 def paisList():
@@ -286,7 +289,6 @@ def paisList():
         dados["itens"].append(pais.to_dict())
 
     return jsonify(dados)
-
 
 
 # U
@@ -346,7 +348,7 @@ def enderecoUpdate(query_id: int):
                 "error": True,
             }
         )
-    if login.acesso.nome != "administracao":
+    if login.acesso.id != 1:
         query_id = login.usuario.endereco_id
 
     # recebe os dados do login a ser editado
@@ -360,7 +362,6 @@ def enderecoUpdate(query_id: int):
         dado["cep"] = re.sub("[^\d]", "", dado.get("cep"))
     for campo in ["cep", "rua", "numero", "bairro", "complemento", "municipio_id"]:
         if dado.get(campo):
-            print(campo)
             setattr(edit, campo, dado.get(campo))
 
     try:

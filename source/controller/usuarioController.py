@@ -70,7 +70,7 @@ def usuarioCreation():
         nome=dados["nome"],
         pis=re.sub("[^\d]", "", dados["pis"]),
         cpf=re.sub("[^\d]", "", dados["cpf"]),
-        endereco_id=dados["endereco_id"]
+        endereco_id=dados["endereco_id"],
     )
 
     db.session.add(usuario)
@@ -134,7 +134,7 @@ def usuarioView(query_id: int):
                 "error": True,
             }
         )
-    if login.acesso.nome != "administracao":
+    if login.acesso.id != 1:
         query_id = login.usuario_id
 
     usuario = Usuario.query.get(query_id)
@@ -260,7 +260,7 @@ def usuarioUpdate(query_id: int):
                 "error": True,
             }
         )
-    if login.acesso.nome != "administracao":
+    if login.acesso.id != 1:
         query_id = login.usuario_id
 
     # recebe os dados do usuario a ser editado
@@ -346,7 +346,7 @@ def usuarioDelete(query_id: int):
 
     login = Login.query.get(get_jwt_identity())
 
-    if login.acesso.nome != "administracao" and login.usuario_id != usuario.id:
+    if login.acesso.id != 1 or login.usuario_id == usuario.id:
         return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
 
     db.session.delete(usuario)

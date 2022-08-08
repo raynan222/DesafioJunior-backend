@@ -69,8 +69,14 @@ def insert_adm():
     from source.model import Endereco, Usuario, Login
     from werkzeug.security import generate_password_hash
 
-    endereco = {"cep": "60862101", "rua": "Rua 10", "numero": "122",
-                "bairro": "Jd Castelinho", "complemento": "Não há", "municipio_id": 1}
+    endereco = {
+        "cep": "60862101",
+        "rua": "Rua 10",
+        "numero": "122",
+        "bairro": "Jd Castelinho",
+        "complemento": "Não há",
+        "municipio_id": 1,
+    }
     endereco_insert = Endereco()
     for campo in endereco.keys():
         setattr(endereco_insert, campo, endereco.get(campo))
@@ -81,7 +87,12 @@ def insert_adm():
     except Exception as e:
         print("insert de endereco nao realizado ->", e)
 
-    usuario = {"nome": "Osvaldo Souza", "pis": "21794821777", "cpf": "76764822085", "endereco_id": 1}
+    usuario = {
+        "nome": "Osvaldo Souza",
+        "pis": "21794821777",
+        "cpf": "76764822085",
+        "endereco_id": 1,
+    }
     usuario_insert = Usuario()
     for campo in usuario.keys():
         setattr(usuario_insert, campo, usuario.get(campo))
@@ -92,7 +103,12 @@ def insert_adm():
     except Exception as e:
         print("insert de usuario nao realizado ->", e)
 
-    login = {"email": "admin@local.com", "senha": generate_password_hash("admin", method="sha256"), "acesso_id": 1, "usuario_id": 1}
+    login = {
+        "email": "admin@local.com",
+        "senha": generate_password_hash("admin", method="sha256"),
+        "acesso_id": 1,
+        "usuario_id": 1,
+    }
     login_insert = Login()
     for campo in login.keys():
         setattr(login_insert, campo, login.get(campo))
@@ -104,20 +120,25 @@ def insert_adm():
         print("insert de adm nao realizado ->", e)
 
 
-# Gerenciador de comandos para ser executado por manager
+# Gerenciador de comandos para que possa ser executado por manager
 class Populate(Command):
     def run(self):
         main()
 
 
 def main():
-    with open('./utils/db/cidade_estados.json', encoding="utf8") as f:
+    #Script usado para popular o banco com os municípios e estados brasileiros
+    #Adiciona os níveis de acesso e um usuário administrador com os dados de login
+    #Email: admin@local.com  Senha: admin
+    with open("./utils/db/cidade_estados.json", encoding="utf8") as f:
         data = json.load(f)
 
     pais_id = insert_pais("Brasil")
     for value in data.values():
         for estado in value:
-            uf_id = insert_estado(nome=estado["nome"], sigla=estado["sigla"], pais_id=pais_id)
+            uf_id = insert_estado(
+                nome=estado["nome"], sigla=estado["sigla"], pais_id=pais_id
+            )
             insert_cidades(lista_cidades=estado["cidades"], uf_id=uf_id)
 
     insert_acessos()

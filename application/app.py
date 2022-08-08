@@ -10,9 +10,9 @@ from utils.db.db_cidade_estado_populate import Populate
 from swagger_ui import api_doc
 
 app = Flask(__name__)
-app.config.from_object('config')
+app.config.from_object("config")
 
-api_doc(app, config_path='./utils/swagger.json', url_prefix='/api', title='API doc')
+api_doc(app, config_path="./utils/swagger.json", url_prefix="/api", title="API doc")
 
 CORS(app)
 
@@ -22,7 +22,10 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 manager = Manager(app)
 
-server = Server(host=os.getenv("BACKEND_HOST", "localhost"), port=os.getenv("PORT", 5000), )
+server = Server(
+    host=os.getenv("BACKEND_HOST", "localhost"),
+    port=os.getenv("PORT", 5000),
+)
 manager.add_command("runserver", server)
 manager.add_command("db", MigrateCommand)
 manager.add_command("populate", Populate)

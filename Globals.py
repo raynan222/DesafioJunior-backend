@@ -26,16 +26,21 @@ INVALID_CPF = "O CPF é invalido."
 INVALID_CEP = "O CEP é invalido."
 INVALID_PIS = "O PIS é invalido."
 INVALID_EMAIL = "O email é invalido."
+EMPTY_FIELD = "O campo {} está vazio."
 
 USER_INVALID_DELETE = "Não é permitido deletar esse usuário."
 
 ALREADY_EXISTS = "O {} informado já está cadastrado."
 
-TEST_LOGIN = {"email": "raynan@olah.com",
-              "senha": "Senha-Secreta",
-              "usuario_id": 1,
-              "acesso_id": 2}
-TEST_USUARIO = {"nome": "Raynan Serafim",
-                "pis": "49633872787",
-                "cpf": "82848973005",
-                "endereco_id": 1}
+TEST_LOGIN = {
+    "email": "raynan@olah.com",
+    "senha": "Senha-Secreta",
+    "usuario_id": 1,
+    "acesso_id": 2,
+}
+TEST_USUARIO = {
+    "nome": "Raynan Serafim",
+    "pis": "49633872787",
+    "cpf": "82848973005",
+    "endereco_id": 1,
+}

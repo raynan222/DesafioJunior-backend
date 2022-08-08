@@ -2,7 +2,6 @@ from functools import wraps
 from flask import request, jsonify
 from flask_sqlalchemy import BaseQuery
 from pydantic import BaseModel, ValidationError
-from error import error_type
 import Globals
 
 
@@ -27,7 +26,8 @@ def paginate(query: BaseQuery, page: int = 1, rows_per_page: int = 1):
 
     return data, output
 
-
+#Caso encontrado de bad formation ainda sendo possivel informar campo com erro
+#Usado na validação antes da execução da rota
 def field_validator(BaseModel):
     def wrapper(f):
         @wraps(f)
@@ -37,17 +37,7 @@ def field_validator(BaseModel):
             try:
                 BaseModel.parse_raw(data)
             except ValidationError as e:
-                for error in e.errors():
-                    msg = error_type.get(error["type"])
-                    ctx = error.get("ctx")
-
-                    if msg:
-                        if ctx:
-                            msg = msg.format(**ctx)
-                        error["msg"] = msg
-
                 validation_errors = {"body_params": e.errors()}
-
                 return (
                     jsonify(
                         {
