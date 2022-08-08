@@ -8,7 +8,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+.env.heroku
 # Distribution / packaging
 .Python
 develop-eggs/
