@@ -19,8 +19,10 @@ psycopg2-binary==2.9.3; python_version >= "3.6"
 pydantic==1.9.1; python_full_version >= "3.6.1"
 pyjwt==1.4.2
 python-dotenv==0.20.0; python_version >= "3.5"
+pyyaml==6.0; python_version >= "3.6"
 six==1.16.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.3.0"
-sqlalchemy==1.4.39; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+sqlalchemy==1.4.40; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+swagger-ui-py==22.7.13
 typing-extensions==4.3.0; python_version >= "3.7" and python_full_version >= "3.6.1"
 validate-docbr==1.10.0
 werkzeug==1.0.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")

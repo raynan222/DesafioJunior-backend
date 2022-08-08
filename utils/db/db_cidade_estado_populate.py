@@ -76,7 +76,7 @@ def insert_adm():
         "numero": "122",
         "bairro": "Jd Castelinho",
         "complemento": "Não há",
-        "municipio_id": randint(0, 5596),
+        "municipio_id": randint(0, 5000),
     }
     endereco_insert = Endereco()
     for campo in endereco.keys():
