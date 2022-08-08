@@ -128,9 +128,9 @@ class Populate(Command):
 
 
 def main():
-    #Script usado para popular o banco com os municípios e estados brasileiros
-    #Adiciona os níveis de acesso e um usuário administrador com os dados de login
-    #Email: admin@local.com  Senha: admin
+    # Script usado para popular o banco com os municípios e estados brasileiros
+    # Adiciona os níveis de acesso e um usuário administrador com os dados de login
+    # Email: admin@local.com  Senha: admin
     with open("./utils/db/cidade_estados.json", encoding="utf8") as f:
         data = json.load(f)
 

@@ -92,7 +92,6 @@ def login():
                 "email": login.email,
                 "id": login.id,
                 "usuario_id": login.usuario_id,
-                "nome": usuario.nome,
                 "usuario": {
                     "id": usuario.id,
                     "nome": usuario.nome,

@@ -86,11 +86,17 @@ def cadastroLogin():
 
     lista_campos = Login._campos + Usuario._campos + Endereco._campos
     for campo in lista_campos:
-        if campo is not "complemento" and dado.get(campo) is None and len(dado.get(campo))>0:
-            return jsonify({
-                    "message": Globals.EMPTY_FIELD.format(campo.replace("_id","")),
+        if (
+            campo is not "complemento"
+            and dado.get(campo) is None
+            and len(dado.get(campo)) > 0
+        ):
+            return jsonify(
+                {
+                    "message": Globals.EMPTY_FIELD.format(campo.replace("_id", "")),
                     "error": True,
-                })
+                }
+            )
     # checa a existencia de um login ja cadastrado com os dados informados
     if Login.query.filter_by(email=dado.get("email").lower()).first():
         return jsonify(
@@ -571,86 +577,6 @@ def loginUpdate(query_id: int):
 
 
 # U
-@app.route("/login/update/senha", methods=["PUT"])
-@jwt_required
-@field_validator(LoginModel)
-def senhaUpdate():
-    """Adiciona registro
-    ---
-    put:
-        tags: [Rotas]
-        security:
-            - jwt: []
-        summary: Edita um registro
-        requestBody:
-            description: Dados necessários para a edição do registro
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    senha_antiga:
-                      type: string
-                    senha_nova1:
-                      type: string
-                    senha_nova2:
-                      type: string
-                  required:
-                    - senha_antiga
-                    - senha_nova1
-                    - senha_nova2
-        responses:
-            200:
-                description: "Sucesso"
-                content:
-                    application/json:
-                        schema:
-                          type: object
-                          properties:
-                            message:
-                              type: string
-            400:
-                description: "Ocorreu um erro"
-                content:
-                  application/json:
-                    schema:
-                      type: object
-                      properties:
-                        error:
-                          type: string
-    """
-    # mudança de senha, somente realizado pelo proprio
-
-    dado = request.get_json()
-
-    login = Login.query.get(get_jwt_identity())
-
-    if dado.get("senha_nova1") != dado.get("senha_nova2"):
-        return jsonify({"message": Globals.PASSWORDS_DONT_MATCH, "error": True})
-
-    elif not check_password_hash(login.senha, str(dado.get("senha_antiga"))):
-        return jsonify({"message": Globals.AUTH_USER_PASS_ERROR, "error": True})
-
-    # Realiza a mudança na senha
-    senha_hashed = generate_password_hash(dado.get("senha_nova1"), method="sha256")
-    login.senha = senha_hashed
-
-    try:
-        db.session.commit()
-        return jsonify(
-            {
-                "message": Globals.REGISTER_SUCCESS_UPDATED.format("login"),
-                "error": False,
-            }
-        )
-    except exc.IntegrityError:
-        db.session.rollback()
-        return jsonify(
-            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
-        )
-
-
-# U
 @app.route("/login/update/complete/<int:query_id>", methods=["PUT"])
 @jwt_required
 @field_validator(LoginModel)
@@ -794,6 +720,86 @@ def loginCompleteUpdate(query_id: int):
         )
 
 
+# U
+@app.route("/login/update/senha", methods=["PUT"])
+@jwt_required
+@field_validator(LoginModel)
+def senhaUpdate():
+    """Adiciona registro
+    ---
+    put:
+        tags: [Rotas]
+        security:
+            - jwt: []
+        summary: Edita um registro
+        requestBody:
+            description: Dados necessários para a edição do registro
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    senha_antiga:
+                      type: string
+                    senha_nova1:
+                      type: string
+                    senha_nova2:
+                      type: string
+                  required:
+                    - senha_antiga
+                    - senha_nova1
+                    - senha_nova2
+        responses:
+            200:
+                description: "Sucesso"
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+            400:
+                description: "Ocorreu um erro"
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+    """
+    # mudança de senha, somente realizado pelo proprio
+
+    dado = request.get_json()
+
+    login = Login.query.get(get_jwt_identity())
+
+    if dado.get("senha_nova1") != dado.get("senha_nova2"):
+        return jsonify({"message": Globals.PASSWORDS_DONT_MATCH, "error": True})
+
+    elif not check_password_hash(login.senha, str(dado.get("senha_antiga"))):
+        return jsonify({"message": Globals.AUTH_USER_PASS_ERROR, "error": True})
+
+    # Realiza a mudança na senha
+    senha_hashed = generate_password_hash(dado.get("senha_nova1"), method="sha256")
+    login.senha = senha_hashed
+
+    try:
+        db.session.commit()
+        return jsonify(
+            {
+                "message": Globals.REGISTER_SUCCESS_UPDATED.format("login"),
+                "error": False,
+            }
+        )
+    except exc.IntegrityError:
+        db.session.rollback()
+        return jsonify(
+            {"message": Globals.REGISTER_CHANGE_INTEGRITY_ERROR, "error": True}
+        )
+
+
 # D(DELETION)
 @app.route("/login/delete/<int:query_id>", methods=["DELETE"])
 @jwt_required
@@ -841,7 +847,7 @@ def loginDelete(query_id: int):
 
     login_atual = Login.query.get(get_jwt_identity())
 
-    if login_atual.acesso.id != 1 or login_atual.id != login_delete.id:
+    if login_atual.acesso.id != 1 or login_atual.id == login_delete.id:
         return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
 
     db.session.delete(login_delete)
@@ -906,7 +912,7 @@ def loginDeleteComplete(query_id: int):
 
     login_atual = Login.query.get(get_jwt_identity())
 
-    if login_atual.acesso.id != 1 or login_atual.id != login_delete.id:
+    if login_atual.acesso.id != 1 or login_atual == login_delete:
         return jsonify({"message": Globals.USER_INVALID_DELETE, "error": True})
 
     endereco_delete = Endereco.query.get(login_delete.usuario.endereco_id)

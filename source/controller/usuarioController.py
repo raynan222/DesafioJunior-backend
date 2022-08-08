@@ -271,8 +271,16 @@ def usuarioUpdate(query_id: int):
         )
 
     # checa validade dos dados
-    cpf = re.sub("[^\d]", "", dado.get("cpf"))
-    pis = re.sub("[^\d]", "", dado.get("pis"))
+    cpf = str()
+    if dado.get("cpf") is not None:
+        dado["cpf"] = re.sub("[^\d]", "", dado.get("cpf"))
+        cpf = dado["cpf"]
+
+    pis = str()
+    if dado.get("pis") is not None:
+        dado["pis"] = re.sub("[^\d]", "", dado.get("pis"))
+        pis = dado["pis"]
+
     existente = Usuario.query.filter(
         or_(Usuario.cpf == cpf, Usuario.pis == pis)
     ).first()

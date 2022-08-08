@@ -26,8 +26,9 @@ def paginate(query: BaseQuery, page: int = 1, rows_per_page: int = 1):
 
     return data, output
 
-#Caso encontrado de bad formation ainda sendo possivel informar campo com erro
-#Usado na validação antes da execução da rota
+
+# Caso encontrado de bad formation ainda sendo possivel informar campo com erro
+# Usado na validação antes da execução da rota
 def field_validator(BaseModel):
     def wrapper(f):
         @wraps(f)

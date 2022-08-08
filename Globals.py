@@ -35,12 +35,14 @@ ALREADY_EXISTS = "O {} informado já está cadastrado."
 TEST_LOGIN = {
     "email": "raynan@olah.com",
     "senha": "Senha-Secreta",
-    "usuario_id": 1,
     "acesso_id": 2,
-}
-TEST_USUARIO = {
     "nome": "Raynan Serafim",
     "pis": "49633872787",
     "cpf": "82848973005",
-    "endereco_id": 1,
+    "cep": "60869-001",
+    "rua": "Oiticicas",
+    "numero": "130",
+    "bairro": "Cajazeiras",
+    "complemento": "Nao tem",
+    "municipio_id": 1,
 }

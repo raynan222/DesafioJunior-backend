@@ -38,8 +38,8 @@ from source.controller.usuarioController import (
 )
 from source.model.usuarioTable import UsuarioModel
 
-#Script utilizado para gera arquivo de documentação no swagger
-#Pode ser acesso em http://localhost:5000/api#/
+# Script utilizado para gera arquivo de documentação no swagger
+# Pode ser acesso em http://localhost:5000/api#/
 spec = APISpec(
     title="Backend",
     version="1.0.0",

@@ -27,11 +27,11 @@ Flask-SQLAlchemy = "*"
 Flask-Migrate = "2.7.0"
 Flask_jwt_extended = "*"
 swagger-ui-py = "*"
+apispec_webframeworks = "*"
+pydantic-sqlalchemy = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
-apispec_webframeworks = "*"
-pydantic-sqlalchemy = "*"
 
 
 [build-system]
