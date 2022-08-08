@@ -543,7 +543,6 @@ def loginUpdate(query_id: int):
         )
     if login.acesso.id != 1:
         query_id = login.id
-        del dado["acesso_id"]
 
     # recebe os dados do login a ser editado
     edit = Login.query.get(query_id)
@@ -737,7 +736,6 @@ def loginCompleteUpdate(query_id: int):
         )
     if login.acesso.id != 1:
         query_id = login.id
-        del dado["acesso_id"]
 
     # recebe os dados do login a ser editado
     login_edit = Login.query.get(query_id)
