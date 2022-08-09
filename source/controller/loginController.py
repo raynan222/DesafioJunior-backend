@@ -86,17 +86,14 @@ def cadastroLogin():
 
     lista_campos = Login._campos + Usuario._campos + Endereco._campos
     for campo in lista_campos:
-        if (
-            campo is not "complemento"
-            and dado.get(campo) is None
-            and len(dado.get(campo)) > 0
-        ):
-            return jsonify(
-                {
-                    "message": Globals.EMPTY_FIELD.format(campo.replace("_id", "")),
-                    "error": True,
-                }
-            )
+        if campo is not "complemento":
+            if dado.get(campo) is None or (type(dado.get(campo))== str and len(dado.get(campo)) == 0):
+                return jsonify(
+                    {
+                        "message": Globals.EMPTY_FIELD.format(campo.replace("_id", "")),
+                        "error": True,
+                    }
+                )
     # checa a existencia de um login ja cadastrado com os dados informados
     if Login.query.filter_by(email=dado.get("email").lower()).first():
         return jsonify(
